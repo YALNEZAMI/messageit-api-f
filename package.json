@@ -1,0 +1,78 @@
+{
+  "name": "messageit-api-f",
+  "description": "Chat application",
+  "version": "0.0.0",
+  "homepage": "",
+  "private": true,
+  "keywords": [
+    "feathers"
+  ],
+  "author": {},
+  "contributors": [],
+  "bugs": {},
+  "engines": {
+    "node": ">= 20.12.2"
+  },
+  "feathers": {
+    "language": "ts",
+    "packager": "npm",
+    "database": "mongodb",
+    "framework": "koa",
+    "transports": [
+      "rest",
+      "websockets"
+    ],
+    "schema": "json"
+  },
+  "directories": {
+    "lib": "src",
+    "test": "test"
+  },
+  "files": [
+    "lib/client.js",
+    "lib/**/*.d.ts",
+    "lib/**/*.shared.js"
+  ],
+  "main": "lib/client",
+  "scripts": {
+    "dev": "nodemon -x ts-node src/index.ts",
+    "compile": "shx rm -rf lib/ && tsc",
+    "start": "node lib/",
+    "prettier": "npx prettier \"**/*.ts\" --write",
+    "mocha": "cross-env NODE_ENV=test mocha test/ --require ts-node/register --recursive --extension .ts --exit",
+    "test": "npm run mocha",
+    "bundle:client": "npm run compile && npm pack --pack-destination ./public"
+  },
+  "dependencies": {
+    "@feathersjs/adapter-commons": "^5.0.31",
+    "@feathersjs/authentication": "^5.0.31",
+    "@feathersjs/authentication-client": "^5.0.31",
+    "@feathersjs/authentication-local": "^5.0.24",
+    "@feathersjs/authentication-oauth": "^5.0.24",
+    "@feathersjs/configuration": "^5.0.31",
+    "@feathersjs/errors": "^5.0.31",
+    "@feathersjs/feathers": "^5.0.31",
+    "@feathersjs/koa": "^5.0.31",
+    "@feathersjs/mongodb": "^5.0.31",
+    "@feathersjs/schema": "^5.0.31",
+    "@feathersjs/socketio": "^5.0.31",
+    "@feathersjs/transport-commons": "^5.0.31",
+    "messageit-api-f": "file:",
+    "mongodb": "^6.10.0",
+    "winston": "^3.16.0"
+  },
+  "devDependencies": {
+    "@feathersjs/cli": "^5.0.31",
+    "@feathersjs/rest-client": "^5.0.31",
+    "@types/mocha": "^10.0.9",
+    "@types/node": "^22.8.4",
+    "axios": "^1.7.7",
+    "cross-env": "^7.0.3",
+    "mocha": "^10.8.2",
+    "nodemon": "^3.1.7",
+    "prettier": "^3.3.3",
+    "shx": "^0.3.4",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.6.3"
+  }
+}
