@@ -4,6 +4,28 @@ import type { TransportConnection, Application } from '@feathersjs/feathers'
 import authenticationClient from '@feathersjs/authentication-client'
 import type { AuthenticationClientOptions } from '@feathersjs/authentication-client'
 
+import { myUsersClient } from './services/my-users/my-users.shared'
+export type { MyUsers, MyUsersData, MyUsersQuery, MyUsersPatch } from './services/my-users/my-users.shared'
+
+import { friendAcceptationsClient } from './services/friend-acceptations/friend-acceptations.shared'
+export type {
+  FriendAcceptations,
+  FriendAcceptationsData,
+  FriendAcceptationsQuery,
+  FriendAcceptationsPatch
+} from './services/friend-acceptations/friend-acceptations.shared'
+
+import { friendsClient } from './services/friends/friends.shared'
+export type { Friends, FriendsData, FriendsQuery, FriendsPatch } from './services/friends/friends.shared'
+
+import { friendRequestsClient } from './services/friend-requests/friend-requests.shared'
+export type {
+  FriendRequests,
+  FriendRequestsData,
+  FriendRequestsQuery,
+  FriendRequestsPatch
+} from './services/friend-requests/friend-requests.shared'
+
 import { userClient } from './services/users/users.shared'
 export type { User, UserData, UserQuery, UserPatch } from './services/users/users.shared'
 
@@ -34,5 +56,9 @@ export const createClient = <Configuration = any,>(
   client.set('connection', connection)
 
   client.configure(userClient)
+  client.configure(friendRequestsClient)
+  client.configure(friendsClient)
+  client.configure(friendAcceptationsClient)
+  client.configure(myUsersClient)
   return client
 }

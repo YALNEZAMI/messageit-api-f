@@ -12,13 +12,12 @@ import type { UserService } from './users.class'
 export const userSchema = {
   $id: 'User',
   type: 'object',
-  additionalProperties: false,
-  required: ['_id', 'email', 'name'],
+  additionalProperties: true,
+  required: ['_id', 'email'],
   properties: {
     _id: ObjectIdSchema(),
     email: { type: 'string' },
-    password: { type: 'string' },
-    name: { type: 'string' }
+    password: { type: 'string' }
   }
 } as const
 export type User = FromSchema<typeof userSchema>
@@ -66,14 +65,14 @@ export const userPatchResolver = resolve<UserPatch, HookContext<UserService>>({
 export const userQuerySchema = {
   $id: 'UserQuery',
   type: 'object',
-  additionalProperties: false,
+  additionalProperties: true,
   properties: {
     ...querySyntax(userSchema.properties)
   }
 } as const
 export type UserQuery = FromSchema<typeof userQuerySchema>
 export const userQueryValidator = getValidator(userQuerySchema, queryValidator)
-export const userQueryResolver = resolve<UserQuery, HookContext<UserService>>({
+export const userQueryResolver = resolve<any, HookContext<UserService>>({
   // If there is a user (e.g. with authentication), they are only allowed to see their own data
   _id: async (value, user, context) => {
     if (context.params.user) {

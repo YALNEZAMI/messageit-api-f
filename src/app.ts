@@ -52,5 +52,38 @@ app.hooks({
   setup: [],
   teardown: []
 })
+// app.js or app.ts
+app.on('connection', (connection) => {
+  // This will add every new connected client to the `anonymous` channel
+  app.channel('anonymous').join(connection)
+})
+
+app.on('login', (authResult, { connection }) => {
+  if (connection) {
+    // If a user has logged in, remove them from the anonymous channel
+    app.channel('anonymous').leave(connection)
+
+    // Add the logged-in user to the `authenticated` channel
+    app.channel('authenticated').join(connection)
+
+    // You can also use specific channels based on user roles, preferences, etc.
+    const { user } = authResult
+
+    if (user.role === 'admin') {
+      app.channel('admins').join(connection)
+    }
+  }
+})
+
+app.on('logout', (payload, { connection }) => {
+  if (connection) {
+    // When a user logs out, remove them from the authenticated channels
+    app.channel('authenticated').leave(connection)
+    app.channel('admins').leave(connection)
+
+    // Optionally add them back to the anonymous channel
+    app.channel('anonymous').join(connection)
+  }
+})
 
 export { app }
