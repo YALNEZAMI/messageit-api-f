@@ -3,6 +3,7 @@ import { AuthenticationService, JWTStrategy } from '@feathersjs/authentication'
 import { LocalStrategy } from '@feathersjs/authentication-local'
 
 import type { Application } from './declarations'
+import { authenticationHooks } from './hooks/authenticate'
 
 declare module './declarations' {
   interface ServiceTypes {
@@ -15,4 +16,5 @@ export const authentication = (app: Application) => {
   authentication.register('jwt', new JWTStrategy())
   authentication.register('local', new LocalStrategy())
   app.use('authentication', authentication)
+  app.service('authentication').hooks(authenticationHooks as any)
 }
