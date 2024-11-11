@@ -1,8 +1,5 @@
-// For more information about this file see https://dove.feathersjs.com/guides/cli/service.html
 import { authenticate } from '@feathersjs/authentication'
-
 import { hooks as schemaHooks } from '@feathersjs/schema'
-
 import {
   friendRequestsDataValidator,
   friendRequestsPatchValidator,
@@ -25,13 +22,29 @@ export * from './friend-requests.schema'
 export const friendRequests = (app: Application) => {
   // Register our service on the Feathers application
   app.use(friendRequestsPath, new FriendRequestsService(getOptions(app)), {
-    // A list of all methods this service exposes externally
     methods: friendRequestsMethods,
-    // You can add additional custom events to be sent to clients here
-    events: []
+    events: [] // You can add additional custom events here if needed
   })
+
+  // Get the registered service instance with event capabilities
+  const service = app.service(friendRequestsPath)
+
+  // Listen to the 'created' event to send a real-time notification
+  // service.on('created', (data, context) => {
+  //   console.log('created from service', data.recipient)
+  //   app.channel(`userId=${data.recipient}`).send({
+  //     action: 'friend-request',
+  //     message: 'veut devenir votre ami!',
+  //     data: {
+  //       _id: data._id,
+  //       sender: data.sender,
+  //       recipient: data.recipient
+  //     }
+  //   })
+  // })
+
   // Initialize hooks
-  app.service(friendRequestsPath).hooks({
+  service.hooks({
     around: {
       all: [
         authenticate('jwt'),

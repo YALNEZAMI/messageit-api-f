@@ -10,6 +10,7 @@ import type {
   FriendRequestsPatch,
   FriendRequestsQuery
 } from './friend-requests.schema'
+import { app } from '../../app'
 
 export type { FriendRequests, FriendRequestsData, FriendRequestsPatch, FriendRequestsQuery }
 
@@ -34,13 +35,20 @@ export class FriendRequestsService<
         ]
       }
     })
+
     if (friendRequestsExist.total != 0) {
       return {
         status: 500,
         message: "Utilisatuer en demande d'amitié"
       }
     }
-    return super._create(data, params)
+
+    const creating = await super._create(data, params)
+    // app.emit('friendRequestCreated', creating)
+    // console.log('creating', creating)
+    // const recipientChannel = app.channel('userId=' + creating.recipient)
+    // recipientChannel.send({ test: 'from service', ...creating })
+    return creating
   }
   async remove(id: any, params: any): Promise<any> {
     const friendReqs = await this.find({
