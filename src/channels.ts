@@ -26,13 +26,20 @@ export const channels = (app: Application) => {
       app.channel('authenticated').join(connection)
     }
   })
+  // In your server code, make sure `publish` method is correctly configured
 
+  // })
   // eslint-disable-next-line no-unused-vars
-  app.publish((data: any, context: HookContext) => {
+  app.publish((data: any, hook: HookContext) => {
     // Here you can add event publishers to channels set up in `channels.js`
     // To publish only for a specific event use `app.publish(eventname, () => {})`
-
+    // Publish only to the intended recipient of the friend request
+    // console.log('data', data)
+    // console.log('hook', hook)
     // e.g. to publish all service events to all authenticated users use
-    return app.channel('authenticated')
+    return [app.channel('authenticated')]
   })
+  // Définir les canaux pour le service 'friend-requests'
+  // Define the publish function specifically for 'friendRequestCreated'
+  // Listen for the custom 'friendRequestCreated' event
 }
