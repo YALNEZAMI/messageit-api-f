@@ -19,8 +19,9 @@ export class FriendsService<ServiceParams extends Params = FriendsParams> extend
   FriendsPatch
 > {
   async create(data: any, params: any): Promise<any> {
-    console.log('creat friend')
-    if (await this.areFriends(data.recipient, data.sender)) {
+    const areFriends = await this.areFriends(data.recipient, data.sender)
+    console.log('areFriends', areFriends)
+    if (areFriends) {
       return { status: 500, message: 'Vous êtes déjà amis !' }
     }
     await app.service('friend-acceptations')._create(data, params)
@@ -28,13 +29,12 @@ export class FriendsService<ServiceParams extends Params = FriendsParams> extend
       sender: data.sender,
       recipient: data.recipient
     }
-    console.log('queryRemoveRequest', queryRemoveRequest)
     await app.service('friend-requests').remove('', {
       query: queryRemoveRequest
     })
     return await super._create(data, params)
   }
-  async areFriends(id: string, id2: string) {
+  async areFriends(id: string, id2: string): Promise<boolean> {
     const req = await super._find({
       query: {
         $or: [
@@ -51,6 +51,8 @@ export class FriendsService<ServiceParams extends Params = FriendsParams> extend
     })
     return req.total != 0
   }
+  // if @params.query.original then return all friends otherwise
+  //return friends of user linked to @params.query.id
   async find(params: any): Promise<any> {
     if (params.query.original) {
       delete params.query.original
@@ -92,7 +94,6 @@ export class FriendsService<ServiceParams extends Params = FriendsParams> extend
     return friends
   }
   async remove(id: any, params: any): Promise<any> {
-    console.log('rm')
     const friendRequest = await this.find({
       query: {
         original: true,
@@ -108,11 +109,10 @@ export class FriendsService<ServiceParams extends Params = FriendsParams> extend
     const idFR = friendRequest.data[0]._id
     return await super._remove(idFR)
   }
-  async patch(data: any, params: any): Promise<any> {
-    console.log('patch ismyfrined')
-    const bool = await this.areFriends(params.query.sender, params.query.reciever)
-    return { bool }
-  }
+  // async patch(data: any, params: any): Promise<any> {
+  //   const bool = await this.areFriends(params.query.sender, params.query.reciever)
+  //   return { bool }
+  // }
 }
 
 export const getOptions = (app: Application): MongoDBAdapterOptions => {

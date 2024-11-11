@@ -23,8 +23,10 @@ export * from './friends.schema'
 
 // A configure function that registers the service and its hooks via `app.configure`
 export const friends = (app: Application) => {
+  const service = new FriendsService(getOptions(app))
+
   // Register our service on the Feathers application
-  app.use(friendsPath, new FriendsService(getOptions(app)), {
+  app.use(friendsPath, service, {
     // A list of all methods this service exposes externally
     methods: friendsMethods,
     // You can add additional custom events to be sent to clients here
