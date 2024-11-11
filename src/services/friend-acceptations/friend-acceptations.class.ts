@@ -23,7 +23,25 @@ export class FriendAcceptationsService<
   FriendAcceptationsData,
   FriendAcceptationsParams,
   FriendAcceptationsPatch
-> {}
+> {
+  async create(data: any, params?: any): Promise<any> {
+    console.log('creation acc')
+    return await super._create(data, params)
+  }
+  //remove acceptations linked to @params.query.id
+  async remove(id: any, params?: any): Promise<any> {
+    console.log('query clearing', params.query)
+    const query = { sender: params.query.id }
+    const acc = await this.find({ query })
+    if (acc.total == 0) {
+      return { status: 500, message: 'Acceptation déjà supprimée' }
+    }
+    acc.data.map(async (acc) => {
+      await super._remove(acc._id as string)
+    })
+    return { status: 200, message: 'accepations cleared' }
+  }
+}
 
 export const getOptions = (app: Application): MongoDBAdapterOptions => {
   return {
