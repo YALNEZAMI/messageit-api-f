@@ -31,6 +31,10 @@ export class UserService<ServiceParams extends Params = UserParams> extends Mong
       const creating: any = await super._create(data, params)
       const creating2: any = await app.service('my-users')._create({
         _id: creating._id,
+        theme: {
+          name: 'Basique',
+          _id: 'basic'
+        },
         ...params.query
       })
       return creating2
