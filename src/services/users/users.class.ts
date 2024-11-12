@@ -19,25 +19,54 @@ export class UserService<ServiceParams extends Params = UserParams> extends Mong
   UserPatch
 > {
   async create(data: any, params?: any): Promise<any> {
-    const userExist = await this.find({
+    data.email = data.email.toLowerCase()
+
+    const userExistByEmail = await this.find({
       query: { email: data.email }
     })
-    if (userExist.total > 0) {
+    const userExistByName = await app.service('my-users').find({
+      query: { name: params.query.name }
+    })
+    if (userExistByEmail.total > 0) {
       return {
         status: 500,
-        message: 'Email déjà utilisé'
+        message: 'Email déjà utilisé',
+        inputId: 'email'
+      }
+    }
+    if (userExistByName.total > 0) {
+      return {
+        status: 500,
+        message: "Nom d'utilisateur déjà utilisé",
+        inputId: 'name'
+      }
+    }
+
+    const creating: any = await super._create(data, params)
+    const creating2: any = await app.service('my-users')._create({
+      _id: creating._id,
+      theme: {
+        name: 'Basique',
+        _id: 'basic'
+      },
+      ...params.query
+    })
+    return creating2
+  }
+  async patch(id: any, data: any): Promise<any> {
+    const userExistByEmail = await this.find({
+      query: {
+        email: data.email
+      }
+    })
+    if (userExistByEmail.total > 0 && userExistByEmail.data[0]._id.toString() != id) {
+      return {
+        status: 500,
+        message: 'Email déjà utilisé ',
+        inputId: 'email'
       }
     } else {
-      const creating: any = await super._create(data, params)
-      const creating2: any = await app.service('my-users')._create({
-        _id: creating._id,
-        theme: {
-          name: 'Basique',
-          _id: 'basic'
-        },
-        ...params.query
-      })
-      return creating2
+      return await super._patch(id, data)
     }
   }
 }
