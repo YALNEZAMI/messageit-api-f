@@ -16,7 +16,35 @@ export class MyUsersService<ServiceParams extends Params = MyUsersParams> extend
   MyUsersData,
   MyUsersParams,
   MyUsersPatch
-> {}
+> {
+  async patch(id: any, data: any): Promise<any> {
+    const userExistByName = await this.find({
+      query: {
+        name: data.name
+      }
+    })
+    const userExistByEmail = await this.find({
+      query: {
+        email: data.email
+      }
+    })
+    if (userExistByName.total > 0 && userExistByName.data[0]._id.toString() != id) {
+      return {
+        status: 500,
+        message: "Nom d'utilisateur déjà utilisé",
+        inputId: 'name'
+      }
+    }
+    if (userExistByEmail.total > 0 && userExistByEmail.data[0]._id.toString() != id) {
+      return {
+        status: 500,
+        message: 'Email déjà utilisé',
+        inputId: 'email'
+      }
+    }
+    return await super._patch(id, data)
+  }
+}
 
 export const getOptions = (app: Application): MongoDBAdapterOptions => {
   return {
