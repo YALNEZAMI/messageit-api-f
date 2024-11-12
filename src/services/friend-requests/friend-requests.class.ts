@@ -55,6 +55,12 @@ export class FriendRequestsService<
         ]
       }
     })
+    if (friendReqs.total == 0) {
+      return {
+        status: 500,
+        message: "Demande d'amitié déjà supprimée."
+      }
+    }
     const friendReqId: any = friendReqs.data[0]._id
     return await super._remove(friendReqId, {})
   }
