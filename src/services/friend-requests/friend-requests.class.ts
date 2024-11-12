@@ -44,9 +44,6 @@ export class FriendRequestsService<
     }
 
     const creating = await super._create(data, params)
-    // app.emit('friendRequestCreated', creating)
-    // const recipientChannel = app.channel('userId=' + creating.recipient)
-    // recipientChannel.send({ test: 'from service', ...creating })
     return creating
   }
   async remove(id: any, params: any): Promise<any> {
