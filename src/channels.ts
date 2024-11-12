@@ -21,7 +21,7 @@ export const channels = (app: Application) => {
     if (connection) {
       // The connection is no longer anonymous, remove it
       app.channel('anonymous').leave(connection)
-
+      app.channel('userId=' + connection.user._id.toString()).join(connection)
       // Add it to the authenticated user channel
       app.channel('authenticated').join(connection)
     }
@@ -30,13 +30,13 @@ export const channels = (app: Application) => {
 
   // })
   // eslint-disable-next-line no-unused-vars
-  app.publish((data: any, hook: HookContext) => {
-    // Here you can add event publishers to channels set up in `channels.js`
-    // To publish only for a specific event use `app.publish(eventname, () => {})`
-    // Publish only to the intended recipient of the friend request
-
-    // e.g. to publish all service events to all authenticated users use
-    return [app.channel('authenticated')]
+  app.service('friend-requests').publish((data: any, hook: HookContext) => {
+    //  const crudMaker = hook.arguments[1].user
+    return app.channel('userId=' + data.recipient)
+  })
+  app.service('friends').publish((data: any, hook: HookContext) => {
+    //  const crudMaker = hook.arguments[1].user
+    return [app.channel('userId=' + data.sender), app.channel('userId=' + data.recipient)]
   })
   // Définir les canaux pour le service 'friend-requests'
   // Define the publish function specifically for 'friendRequestCreated'
