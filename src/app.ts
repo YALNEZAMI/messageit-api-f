@@ -52,43 +52,5 @@ app.hooks({
   setup: [],
   teardown: []
 })
-// app.on('connection', (connection) => {
-//   console.log('chennels connection ', connection)
-//   // This will add every new connected client to the `anonymous` channel
-//   app.channel('anonymous').join(connection)
-//   // Join each new connection to a user-specific channel based on their user ID
-//   if (connection.user) {
-//     app.channel(`users/${connection.user._id}`).join(connection)
-//   }
-// })
-// app.publish((data: any, hook) => {
-//   // By default, don't broadcast events to everyone
-//   return app.channel(`users/${data.recipient}`)
-// })
-
-// app.on('login', (authResult, { connection }) => {
-//   if (connection) {
-//     // If a user has logged in, remove them from the anonymous channel
-//     app.channel('anonymous').leave(connection)
-
-//     // Add the logged-in user to the `authenticated` channel
-//     app.channel('authenticated').join(connection)
-
-//     // You can also use specific channels based on user roles, preferences, etc.
-//     const { user } = authResult
-//     console.log('user loged ', user)
-//   }
-// })
-
-// app.on('logout', (payload, { connection }) => {
-//   if (connection) {
-//     // When a user logs out, remove them from the authenticated channels
-//     app.channel('authenticated').leave(connection)
-//     app.channel('admins').leave(connection)
-
-//     // Optionally add them back to the anonymous channel
-//     app.channel('anonymous').join(connection)
-//   }
-// })
 
 export { app }

@@ -25,12 +25,10 @@ export class FriendAcceptationsService<
   FriendAcceptationsPatch
 > {
   async create(data: any, params?: any): Promise<any> {
-    console.log('creation acc')
     return await super._create(data, params)
   }
   //remove acceptations linked to @params.query.id
   async remove(id: any, params?: any): Promise<any> {
-    console.log('query clearing', params.query)
     const query = { sender: params.query.id }
     const acc = await this.find({ query })
     if (acc.total == 0) {

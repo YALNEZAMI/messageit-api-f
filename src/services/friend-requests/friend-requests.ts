@@ -31,7 +31,6 @@ export const friendRequests = (app: Application) => {
 
   // Listen to the 'created' event to send a real-time notification
   // service.on('created', (data, context) => {
-  //   console.log('created from service', data.recipient)
   //   app.channel(`userId=${data.recipient}`).send({
   //     action: 'friend-request',
   //     message: 'veut devenir votre ami!',

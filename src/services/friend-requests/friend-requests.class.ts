@@ -45,7 +45,6 @@ export class FriendRequestsService<
 
     const creating = await super._create(data, params)
     // app.emit('friendRequestCreated', creating)
-    // console.log('creating', creating)
     // const recipientChannel = app.channel('userId=' + creating.recipient)
     // recipientChannel.send({ test: 'from service', ...creating })
     return creating

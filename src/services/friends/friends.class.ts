@@ -20,7 +20,6 @@ export class FriendsService<ServiceParams extends Params = FriendsParams> extend
 > {
   async create(data: any, params: any): Promise<any> {
     const areFriends = await this.areFriends(data.recipient, data.sender)
-    console.log('areFriends', areFriends)
     if (areFriends) {
       return { status: 500, message: 'Vous êtes déjà amis !' }
     }
