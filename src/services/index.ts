@@ -1,3 +1,5 @@
+import { members } from './members/members'
+import { conversations } from './conversations/conversations'
 import { myUsers } from './my-users/my-users'
 import { friendAcceptations } from './friend-acceptations/friend-acceptations'
 import { friends } from './friends/friends'
@@ -7,6 +9,8 @@ import { user } from './users/users'
 import type { Application } from '../declarations'
 
 export const services = (app: Application) => {
+  app.configure(members)
+  app.configure(conversations)
   app.configure(myUsers)
   app.configure(friendAcceptations)
   app.configure(friends)

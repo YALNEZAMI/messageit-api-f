@@ -4,6 +4,17 @@ import type { TransportConnection, Application } from '@feathersjs/feathers'
 import authenticationClient from '@feathersjs/authentication-client'
 import type { AuthenticationClientOptions } from '@feathersjs/authentication-client'
 
+import { membersClient } from './services/members/members.shared'
+export type { Members, MembersData, MembersQuery, MembersPatch } from './services/members/members.shared'
+
+import { conversationsClient } from './services/conversations/conversations.shared'
+export type {
+  Conversations,
+  ConversationsData,
+  ConversationsQuery,
+  ConversationsPatch
+} from './services/conversations/conversations.shared'
+
 import { myUsersClient } from './services/my-users/my-users.shared'
 export type { MyUsers, MyUsersData, MyUsersQuery, MyUsersPatch } from './services/my-users/my-users.shared'
 
@@ -60,5 +71,7 @@ export const createClient = <Configuration = any,>(
   client.configure(friendsClient)
   client.configure(friendAcceptationsClient)
   client.configure(myUsersClient)
+  client.configure(conversationsClient)
+  client.configure(membersClient)
   return client
 }
