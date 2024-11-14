@@ -83,13 +83,6 @@ export class FriendsService<ServiceParams extends Params = FriendsParams> extend
       friends.push(user)
     }
 
-    // Fetch the friends using the collected IDs
-    // const friends = await app.service('my-users').find({
-    //   query: {
-    //     _id: { $in: friendsIds }
-    //   }
-    // })
-
     return friends
   }
   async remove(id: any, params: any): Promise<any> {
@@ -108,10 +101,6 @@ export class FriendsService<ServiceParams extends Params = FriendsParams> extend
     const idFR = friendRequest.data[0]._id
     return await super._remove(idFR)
   }
-  // async patch(data: any, params: any): Promise<any> {
-  //   const bool = await this.areFriends(params.query.sender, params.query.reciever)
-  //   return { bool }
-  // }
 }
 
 export const getOptions = (app: Application): MongoDBAdapterOptions => {
