@@ -14,7 +14,18 @@ export const conversationsSchema = {
   additionalProperties: false,
   required: ['_id'],
   properties: {
-    _id: ObjectIdSchema()
+    _id: ObjectIdSchema(),
+    name: { type: 'string' },
+    type: { type: 'string' }, //private,group,ai
+    theme: {
+      type: 'object',
+      default: { _id: 'basic', name: 'Basique' },
+      additionalProperties: false,
+      properties: {
+        _id: { type: 'string' },
+        name: { type: 'string' }
+      }
+    }
   }
 } as const
 export type Conversations = FromSchema<typeof conversationsSchema>
