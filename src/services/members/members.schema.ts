@@ -12,11 +12,11 @@ export const membersSchema = {
   $id: 'Members',
   type: 'object',
   additionalProperties: false,
-  required: ['_id', 'text'],
+  required: ['_id'],
   properties: {
     _id: ObjectIdSchema(),
-
-    text: { type: 'string' }
+    user: { type: 'string' },
+    conversation: { type: 'string' }
   }
 } as const
 export type Members = FromSchema<typeof membersSchema>
@@ -30,7 +30,7 @@ export const membersDataSchema = {
   $id: 'MembersData',
   type: 'object',
   additionalProperties: false,
-  required: ['text'],
+  required: [],
   properties: {
     ...membersSchema.properties
   }
