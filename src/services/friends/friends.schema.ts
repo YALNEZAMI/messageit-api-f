@@ -58,9 +58,15 @@ export const friendsPatchResolver = resolve<FriendsPatch, HookContext<FriendsSer
 export const friendsQuerySchema = {
   $id: 'FriendsQuery',
   type: 'object',
-  additionalProperties: true,
+  additionalProperties: false,
   properties: {
-    ...querySyntax(friendsSchema.properties)
+    ...querySyntax(friendsSchema.properties),
+    ...querySyntax({
+      original: { type: 'boolean' },
+      id: { type: 'string' },
+      recipient: { type: 'string' },
+      sender: { type: 'string' }
+    })
   }
 } as const
 export type FriendsQuery = FromSchema<typeof friendsQuerySchema>

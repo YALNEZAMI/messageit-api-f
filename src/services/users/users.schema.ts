@@ -65,9 +65,12 @@ export const userPatchResolver = resolve<UserPatch, HookContext<UserService>>({
 export const userQuerySchema = {
   $id: 'UserQuery',
   type: 'object',
-  additionalProperties: true,
+  additionalProperties: false,
   properties: {
-    ...querySyntax(userSchema.properties)
+    ...querySyntax(userSchema.properties),
+    ...querySyntax({
+      name: { type: 'string' }
+    })
   }
 } as const
 export type UserQuery = FromSchema<typeof userQuerySchema>

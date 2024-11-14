@@ -68,8 +68,9 @@ export const friendAcceptationsPatchResolver = resolve<
 export const friendAcceptationsQuerySchema = {
   $id: 'FriendAcceptationsQuery',
   type: 'object',
-  additionalProperties: true,
+  additionalProperties: false,
   properties: {
+    ...querySyntax({ id: { type: 'string' } }),
     ...querySyntax(friendAcceptationsSchema.properties)
   }
 } as const
