@@ -46,12 +46,14 @@ export class FriendRequestsService<
     const creating = await super._create(data, params)
     return creating
   }
-  async remove(id: any, params: any): Promise<any> {
+  async remove(id: any, params: FriendRequestsParams): Promise<any> {
+    const query: FriendRequestsQuery = params.query!
+
     const friendReqs = await this.find({
       query: {
         $or: [
-          { sender: params.query.sender, recipient: params.query.recipient },
-          { recipient: params.query.sender, sender: params.query.recipient }
+          { sender: query.sender, recipient: query.recipient },
+          { recipient: query.sender, sender: query.recipient }
         ]
       }
     })

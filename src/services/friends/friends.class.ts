@@ -18,13 +18,13 @@ export class FriendsService<ServiceParams extends Params = FriendsParams> extend
   FriendsParams,
   FriendsPatch
 > {
-  async create(data: any, params: any): Promise<any> {
+  async create(data: any, params: FriendsParams): Promise<any> {
     const areFriends = await this.areFriends(data.recipient, data.sender)
     if (areFriends) {
       return { status: 500, message: 'Vous êtes déjà amis !' }
     }
     await app.service('friend-acceptations')._create(data, params)
-    const queryRemoveRequest = {
+    const queryRemoveRequest: FriendsQuery = {
       sender: data.sender,
       recipient: data.recipient
     }
@@ -53,11 +53,12 @@ export class FriendsService<ServiceParams extends Params = FriendsParams> extend
   // if @params.query.original then return all friends otherwise
   //return friends of user linked to @params.query.id
   async find(params: any): Promise<any> {
-    if (params.query.original) {
-      delete params.query.original
+    const query: FriendsQuery = params.query!
+    if (query.original) {
+      delete query.original
       return super._find(params)
     }
-    const id = params.query.id
+    const id = query.id
 
     // Find friendships where either sender or recipient matches the user's id
     const friendShips = await super._find({
@@ -85,13 +86,15 @@ export class FriendsService<ServiceParams extends Params = FriendsParams> extend
 
     return friends
   }
-  async remove(id: any, params: any): Promise<any> {
+  async remove(id: any, params: FriendsParams): Promise<any> {
+    const query: FriendsQuery = params.query!
+
     const friendRequest = await this.find({
       query: {
         original: true,
         $or: [
-          { sender: params.query.sender, recipient: params.query.recipient },
-          { recipient: params.query.sender, sender: params.query.recipient }
+          { sender: query.sender, recipient: query.recipient },
+          { recipient: query.sender, sender: query.recipient }
         ]
       }
     })

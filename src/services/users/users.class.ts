@@ -4,7 +4,7 @@ import { MongoDBService } from '@feathersjs/mongodb'
 import type { MongoDBAdapterParams, MongoDBAdapterOptions } from '@feathersjs/mongodb'
 
 import type { Application } from '../../declarations'
-import type { User, UserData, UserPatch, UserQuery } from './users.schema'
+import { userQuerySchema, type User, type UserData, type UserPatch, type UserQuery } from './users.schema'
 import { app } from '../../app'
 
 export type { User, UserData, UserPatch, UserQuery }
@@ -20,12 +20,12 @@ export class UserService<ServiceParams extends Params = UserParams> extends Mong
 > {
   async create(data: any, params?: any): Promise<any> {
     data.email = data.email.toLowerCase()
-
+    const query: UserQuery = params.query!
     const userExistByEmail = await this.find({
       query: { email: data.email }
     })
     const userExistByName = await app.service('my-users').find({
-      query: { name: params.query.name }
+      query: { name: query.name }
     })
     if (userExistByEmail.total > 0) {
       return {
