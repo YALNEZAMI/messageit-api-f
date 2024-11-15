@@ -10,7 +10,7 @@ import { app } from '../../app'
 export type { User, UserData, UserPatch, UserQuery }
 
 export interface UserParams extends MongoDBAdapterParams<UserQuery> {}
-
+//TODO try $regex in back end to search peaple
 // By default calls the standard MongoDB adapter service methods but can be customized with your own functionality.
 export class UserService<ServiceParams extends Params = UserParams> extends MongoDBService<
   User,
