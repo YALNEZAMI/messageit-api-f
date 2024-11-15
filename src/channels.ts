@@ -38,6 +38,10 @@ export const channels = (app: Application) => {
     //  const crudMaker = hook.arguments[1].user
     return [app.channel('userId=' + data.sender), app.channel('userId=' + data.recipient)]
   })
+  app.service('conversations').publish((data: any, hook: HookContext) => {
+    console.log('conv created ws', data)
+    return [app.channel('userId=' + data.user1), app.channel('userId=' + data.user2)]
+  })
   // Définir les canaux pour le service 'friend-requests'
   // Define the publish function specifically for 'friendRequestCreated'
   // Listen for the custom 'friendRequestCreated' event
