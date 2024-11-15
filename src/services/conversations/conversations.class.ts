@@ -10,6 +10,7 @@ import type {
   ConversationsPatch,
   ConversationsQuery
 } from './conversations.schema'
+import { app } from '../../app'
 
 export type { Conversations, ConversationsData, ConversationsPatch, ConversationsQuery }
 
@@ -21,7 +22,61 @@ export class ConversationsService<ServiceParams extends Params = ConversationsPa
   ConversationsData,
   ConversationsParams,
   ConversationsPatch
-> {}
+> {
+  async find(params: any): Promise<any> {
+    const currentUserId = params.query.currentUserId
+    return super.find({
+      query: {
+        $or: [
+          {
+            user1: currentUserId
+          },
+          {
+            user2: currentUserId
+          }
+        ]
+      }
+    })
+  }
+  //TODO handle unfriend with conversation
+  async create(data: any, params: ConversationsParams): Promise<any> {
+    const exists = await this.find({
+      query: {
+        $or: [
+          {
+            user1: data?.user1,
+            user2: data?.user2
+          },
+          {
+            user1: data?.user2,
+            user2: data?.user1
+          }
+        ]
+      }
+    })
+    if (exists.total == 0) {
+      const body: ConversationsData = {
+        ...data,
+        theme: {
+          _id: 'basic',
+          name: 'Basique'
+        }
+      }
+      const creating = await super.create(body)
+      await app.service('members').create({
+        user: data.user1,
+        conversation: creating._id.toString() as string
+      })
+      await app.service('members').create({
+        user: data.user2,
+        conversation: creating._id.toString() as string
+      })
+      return creating
+    } else {
+      return exists.data[0]
+    }
+  }
+}
 
 export const getOptions = (app: Application): MongoDBAdapterOptions => {
   return {
