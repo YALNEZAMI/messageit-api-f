@@ -10,7 +10,7 @@
     "default": 10,
     "max": 50
   },
-  "mongodb": "mongodb://yalnezami:1122334455@localhost:27017",
+  "mongodb": "mongodb://localhost:27017",
   "authentication": {
     "entity": "user",
     "service": "users",
