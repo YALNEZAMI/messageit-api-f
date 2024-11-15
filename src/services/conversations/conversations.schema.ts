@@ -16,7 +16,8 @@ export const conversationsSchema = {
   properties: {
     _id: ObjectIdSchema(),
     name: { type: 'string' },
-    type: { type: 'string' }, //private,group,ai
+    user1: { type: 'string' },
+    user2: { type: 'string' },
     theme: {
       type: 'object',
       default: { _id: 'basic', name: 'Basique' },
@@ -66,11 +67,21 @@ export const conversationsPatchResolver = resolve<ConversationsPatch, HookContex
 export const conversationsQuerySchema = {
   $id: 'ConversationsQuery',
   type: 'object',
-  additionalProperties: false,
+  additionalProperties: false, // Allow additional properties if necessary
   properties: {
-    ...querySyntax(conversationsSchema.properties)
+    ...querySyntax(conversationsSchema.properties),
+    ...querySyntax({
+      currentUserId: {
+        type: 'string'
+      },
+      user1: {
+        type: 'string'
+      },
+      user2: { type: 'string' }
+    })
   }
 } as const
+
 export type ConversationsQuery = FromSchema<typeof conversationsQuerySchema>
 export const conversationsQueryValidator = getValidator(conversationsQuerySchema, queryValidator)
 export const conversationsQueryResolver = resolve<ConversationsQuery, HookContext<ConversationsService>>({})
