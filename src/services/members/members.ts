@@ -17,6 +17,7 @@ import {
 import type { Application } from '../../declarations'
 import { MembersService, getOptions } from './members.class'
 import { membersPath, membersMethods } from './members.shared'
+import setTimestamps from '../../hooks/dating'
 
 export * from './members.class'
 export * from './members.schema'
@@ -43,8 +44,16 @@ export const members = (app: Application) => {
       all: [schemaHooks.validateQuery(membersQueryValidator), schemaHooks.resolveQuery(membersQueryResolver)],
       find: [],
       get: [],
-      create: [schemaHooks.validateData(membersDataValidator), schemaHooks.resolveData(membersDataResolver)],
-      patch: [schemaHooks.validateData(membersPatchValidator), schemaHooks.resolveData(membersPatchResolver)],
+      create: [
+        setTimestamps(),
+        schemaHooks.validateData(membersDataValidator),
+        schemaHooks.resolveData(membersDataResolver)
+      ],
+      patch: [
+        setTimestamps(),
+        schemaHooks.validateData(membersPatchValidator),
+        schemaHooks.resolveData(membersPatchResolver)
+      ],
       remove: []
     },
     after: {

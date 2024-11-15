@@ -15,6 +15,8 @@ export const conversationsSchema = {
   required: ['_id'],
   properties: {
     _id: ObjectIdSchema(),
+    createdAt: { type: 'string' },
+    updatedAt: { type: 'string' },
     name: { type: 'string' },
     user1: { type: 'string' },
     user2: { type: 'string' },

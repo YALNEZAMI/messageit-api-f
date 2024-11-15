@@ -15,6 +15,8 @@ export const membersSchema = {
   required: ['_id'],
   properties: {
     _id: ObjectIdSchema(),
+    createdAt: { type: 'string' },
+    updatedAt: { type: 'string' },
     user: { type: 'string' },
     conversation: { type: 'string' }
   }

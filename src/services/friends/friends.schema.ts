@@ -15,6 +15,8 @@ export const friendsSchema = {
   required: ['_id'],
   properties: {
     _id: ObjectIdSchema(),
+    createdAt: { type: 'string' },
+    updatedAt: { type: 'string' },
 
     sender: { type: 'string' },
     recipient: { type: 'string' }

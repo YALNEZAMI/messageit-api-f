@@ -11,6 +11,7 @@ import type {
   ConversationsQuery
 } from './conversations.schema'
 import { app } from '../../app'
+import { getDatingProperties } from '../../hooks/dating'
 
 export type { Conversations, ConversationsData, ConversationsPatch, ConversationsQuery }
 
@@ -65,11 +66,13 @@ export class ConversationsService<ServiceParams extends Params = ConversationsPa
       const creating = await super.create(body)
       await app.service('members').create({
         user: data.user1,
-        conversation: creating._id.toString() as string
+        conversation: creating._id.toString() as string,
+        ...getDatingProperties()
       })
       await app.service('members').create({
         user: data.user2,
-        conversation: creating._id.toString() as string
+        conversation: creating._id.toString() as string,
+        ...getDatingProperties()
       })
       return creating
     } else {

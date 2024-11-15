@@ -17,6 +17,7 @@ import {
 import type { Application } from '../../declarations'
 import { FriendAcceptationsService, getOptions } from './friend-acceptations.class'
 import { friendAcceptationsPath, friendAcceptationsMethods } from './friend-acceptations.shared'
+import setTimestamps from '../../hooks/dating'
 
 export * from './friend-acceptations.class'
 export * from './friend-acceptations.schema'
@@ -47,10 +48,14 @@ export const friendAcceptations = (app: Application) => {
       find: [],
       get: [],
       create: [
+        setTimestamps(),
+
         schemaHooks.validateData(friendAcceptationsDataValidator),
         schemaHooks.resolveData(friendAcceptationsDataResolver)
       ],
       patch: [
+        setTimestamps(),
+
         schemaHooks.validateData(friendAcceptationsPatchValidator),
         schemaHooks.resolveData(friendAcceptationsPatchResolver)
       ],

@@ -6,6 +6,7 @@ import type { MongoDBAdapterParams, MongoDBAdapterOptions } from '@feathersjs/mo
 import type { Application } from '../../declarations'
 import type { Friends, FriendsData, FriendsPatch, FriendsQuery } from './friends.schema'
 import { app } from '../../app'
+import { getDatingProperties } from '../../hooks/dating'
 
 export type { Friends, FriendsData, FriendsPatch, FriendsQuery }
 
@@ -26,7 +27,8 @@ export class FriendsService<ServiceParams extends Params = FriendsParams> extend
     await app.service('friend-acceptations')._create(data, params)
     const queryRemoveRequest: FriendsQuery = {
       sender: data.sender,
-      recipient: data.recipient
+      recipient: data.recipient,
+      ...getDatingProperties()
     }
     await app.service('friend-requests').remove('', {
       query: queryRemoveRequest

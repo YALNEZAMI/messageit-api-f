@@ -16,6 +16,8 @@ export const userSchema = {
   required: ['_id', 'email'],
   properties: {
     _id: ObjectIdSchema(),
+    createdAt: { type: 'string' },
+    updatedAt: { type: 'string' },
     email: { type: 'string' },
     password: { type: 'string' }
   }

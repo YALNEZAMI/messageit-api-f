@@ -15,6 +15,8 @@ export const myUsersSchema = {
   required: ['_id'],
   properties: {
     name: { type: 'string' },
+    createdAt: { type: 'string' },
+    updatedAt: { type: 'string' },
     theme: {
       type: 'object',
       default: { _id: 'basic', name: 'Basique' },

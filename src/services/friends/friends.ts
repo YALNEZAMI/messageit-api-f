@@ -17,6 +17,7 @@ import {
 import type { Application } from '../../declarations'
 import { FriendsService, getOptions } from './friends.class'
 import { friendsPath, friendsMethods } from './friends.shared'
+import setTimestamps from '../../hooks/dating'
 
 export * from './friends.class'
 export * from './friends.schema'
@@ -45,8 +46,16 @@ export const friends = (app: Application) => {
       all: [schemaHooks.validateQuery(friendsQueryValidator), schemaHooks.resolveQuery(friendsQueryResolver)],
       find: [],
       get: [],
-      create: [schemaHooks.validateData(friendsDataValidator), schemaHooks.resolveData(friendsDataResolver)],
-      patch: [schemaHooks.validateData(friendsPatchValidator), schemaHooks.resolveData(friendsPatchResolver)],
+      create: [
+        setTimestamps(),
+        schemaHooks.validateData(friendsDataValidator),
+        schemaHooks.resolveData(friendsDataResolver)
+      ],
+      patch: [
+        setTimestamps(),
+        schemaHooks.validateData(friendsPatchValidator),
+        schemaHooks.resolveData(friendsPatchResolver)
+      ],
       remove: []
     },
     after: {

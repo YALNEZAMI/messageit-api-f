@@ -6,6 +6,7 @@ import type { MongoDBAdapterParams, MongoDBAdapterOptions } from '@feathersjs/mo
 import type { Application } from '../../declarations'
 import { userQuerySchema, type User, type UserData, type UserPatch, type UserQuery } from './users.schema'
 import { app } from '../../app'
+import { getDatingProperties } from '../../hooks/dating'
 
 export type { User, UserData, UserPatch, UserQuery }
 
@@ -49,7 +50,8 @@ export class UserService<ServiceParams extends Params = UserParams> extends Mong
         name: 'Basique',
         _id: 'basic'
       },
-      ...params.query
+      ...params.query,
+      ...getDatingProperties()
     })
     return creating2
   }

@@ -17,6 +17,7 @@ import {
 import type { Application } from '../../declarations'
 import { ConversationsService, getOptions } from './conversations.class'
 import { conversationsPath, conversationsMethods } from './conversations.shared'
+import setTimestamps from '../../hooks/dating'
 
 export * from './conversations.class'
 export * from './conversations.schema'
@@ -47,10 +48,12 @@ export const conversations = (app: Application) => {
       find: [],
       get: [],
       create: [
+        setTimestamps(),
         schemaHooks.validateData(conversationsDataValidator),
         schemaHooks.resolveData(conversationsDataResolver)
       ],
       patch: [
+        setTimestamps(),
         schemaHooks.validateData(conversationsPatchValidator),
         schemaHooks.resolveData(conversationsPatchResolver)
       ],
