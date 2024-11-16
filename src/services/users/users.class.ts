@@ -50,6 +50,8 @@ export class UserService<ServiceParams extends Params = UserParams> extends Mong
         name: 'Basique',
         _id: 'basic'
       },
+      onLine: true,
+      lastConnection: new Date().toISOString(),
       ...params.query,
       ...getDatingProperties()
     })

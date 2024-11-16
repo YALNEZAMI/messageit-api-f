@@ -26,6 +26,12 @@ export const myUsersSchema = {
         name: { type: 'string' }
       }
     },
+    onLine: {
+      type: 'boolean'
+    },
+    lastConnection: {
+      type: 'string'
+    },
     _id: { type: 'string' },
     email: { type: 'string' }
   }
