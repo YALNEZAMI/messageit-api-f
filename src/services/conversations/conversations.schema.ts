@@ -12,7 +12,7 @@ export const conversationsSchema = {
   $id: 'Conversations',
   type: 'object',
   additionalProperties: false,
-  required: ['_id'],
+  required: ['_id', 'name', 'user1', 'user2'],
   properties: {
     _id: ObjectIdSchema(),
     createdAt: { type: 'string' },
