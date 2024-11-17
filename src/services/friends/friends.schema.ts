@@ -12,12 +12,11 @@ export const friendsSchema = {
   $id: 'Friends',
   type: 'object',
   additionalProperties: false,
-  required: ['_id'],
+  required: ['_id', 'sender', 'recipient'],
   properties: {
     _id: ObjectIdSchema(),
     createdAt: { type: 'string' },
     updatedAt: { type: 'string' },
-
     sender: { type: 'string' },
     recipient: { type: 'string' }
   }
@@ -62,12 +61,10 @@ export const friendsQuerySchema = {
   type: 'object',
   additionalProperties: false,
   properties: {
-    ...querySyntax(friendsSchema.properties),
     ...querySyntax({
+      ...friendsSchema.properties,
       original: { type: 'boolean' },
-      id: { type: 'string' },
-      recipient: { type: 'string' },
-      sender: { type: 'string' }
+      id: { type: 'string' }
     })
   }
 } as const
