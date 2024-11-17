@@ -26,7 +26,7 @@ export class UserService<ServiceParams extends Params = UserParams> extends Mong
       query: { email: data.email }
     })
     const userExistByName = await app.service('my-users').find({
-      query: { name: query.name }
+      query: { name: query.name as string }
     })
     if (userExistByEmail.total > 0) {
       return {
