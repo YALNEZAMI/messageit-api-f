@@ -39,10 +39,18 @@ export const channels = (app: Application) => {
     return [app.channel('userId=' + data.sender), app.channel('userId=' + data.recipient)]
   })
   app.service('conversations').publish((data: any, hook: HookContext) => {
-    console.log('conv created ws', data)
     return [app.channel('userId=' + data.user1), app.channel('userId=' + data.user2)]
   })
-  // Définir les canaux pour le service 'friend-requests'
-  // Define the publish function specifically for 'friendRequestCreated'
-  // Listen for the custom 'friendRequestCreated' event
+  app.service('my-users').publish(async (data: any, hook: HookContext) => {
+    const friends = await app.service('friends').find({
+      query: {
+        id: data._id.toString()
+      }
+    })
+    const res: any = []
+    for (const fr of friends) {
+      res.push(app.channel('userId=' + fr._id.toString()))
+    }
+    return res
+  })
 }
