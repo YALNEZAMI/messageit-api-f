@@ -1,6 +1,4 @@
-// For more information about this file see https://dove.feathersjs.com/guides/cli/service.html
 import { authenticate } from '@feathersjs/authentication'
-
 import { hooks as schemaHooks } from '@feathersjs/schema'
 
 import {
@@ -18,20 +16,17 @@ import type { Application } from '../../declarations'
 import { ConversationsService, getOptions } from './conversations.class'
 import { conversationsPath, conversationsMethods } from './conversations.shared'
 import setTimestamps from '../../hooks/dating'
+import { privateConversationExistHook, setDefaultValues } from './conversations.hooks'
 
 export * from './conversations.class'
 export * from './conversations.schema'
 
-// A configure function that registers the service and its hooks via `app.configure`
 export const conversations = (app: Application) => {
-  // Register our service on the Feathers application
   app.use(conversationsPath, new ConversationsService(getOptions(app)), {
-    // A list of all methods this service exposes externally
     methods: conversationsMethods,
-    // You can add additional custom events to be sent to clients here
     events: []
   })
-  // Initialize hooks
+
   app.service(conversationsPath).hooks({
     around: {
       all: [
@@ -48,6 +43,8 @@ export const conversations = (app: Application) => {
       find: [],
       get: [],
       create: [
+        setDefaultValues(),
+        privateConversationExistHook(),
         setTimestamps(),
         schemaHooks.validateData(conversationsDataValidator),
         schemaHooks.resolveData(conversationsDataResolver)
@@ -68,7 +65,6 @@ export const conversations = (app: Application) => {
   })
 }
 
-// Add this service to the service type index
 declare module '../../declarations' {
   interface ServiceTypes {
     [conversationsPath]: ConversationsService
