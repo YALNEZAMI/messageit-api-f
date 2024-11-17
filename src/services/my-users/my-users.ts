@@ -17,7 +17,6 @@ import {
 import type { Application } from '../../declarations'
 import { MyUsersService, getOptions } from './my-users.class'
 import { myUsersPath, myUsersMethods } from './my-users.shared'
-import setTimestamps from '../../hooks/dating'
 
 export * from './my-users.class'
 export * from './my-users.schema'
@@ -34,22 +33,18 @@ export const myUsers = (app: Application) => {
   // Initialize hooks
   app.service(myUsersPath).hooks({
     around: {
-      all: [schemaHooks.resolveExternal(myUsersExternalResolver), schemaHooks.resolveResult(myUsersResolver)]
+      all: [
+        authenticate('jwt'),
+        schemaHooks.resolveExternal(myUsersExternalResolver),
+        schemaHooks.resolveResult(myUsersResolver)
+      ]
     },
     before: {
       all: [schemaHooks.validateQuery(myUsersQueryValidator), schemaHooks.resolveQuery(myUsersQueryResolver)],
       find: [],
       get: [],
-      create: [
-        setTimestamps(),
-        schemaHooks.validateData(myUsersDataValidator),
-        schemaHooks.resolveData(myUsersDataResolver)
-      ],
-      patch: [
-        setTimestamps(),
-        schemaHooks.validateData(myUsersPatchValidator),
-        schemaHooks.resolveData(myUsersPatchResolver)
-      ],
+      create: [schemaHooks.validateData(myUsersDataValidator), schemaHooks.resolveData(myUsersDataResolver)],
+      patch: [schemaHooks.validateData(myUsersPatchValidator), schemaHooks.resolveData(myUsersPatchResolver)],
       remove: []
     },
     after: {

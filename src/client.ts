@@ -15,9 +15,6 @@ export type {
   ConversationsPatch
 } from './services/conversations/conversations.shared'
 
-import { myUsersClient } from './services/my-users/my-users.shared'
-export type { MyUsers, MyUsersData, MyUsersQuery, MyUsersPatch } from './services/my-users/my-users.shared'
-
 import { friendAcceptationsClient } from './services/friend-acceptations/friend-acceptations.shared'
 export type {
   FriendAcceptations,
@@ -56,7 +53,7 @@ export type ClientApplication = Application<ServiceTypes, Configuration>
  * @see https://dove.feathersjs.com/api/client.html
  * @returns The Feathers client application
  */
-export const createClient = <Configuration = any,>(
+export const createClient = <Configuration = any>(
   connection: TransportConnection<ServiceTypes>,
   authenticationOptions: Partial<AuthenticationClientOptions> = {}
 ) => {
@@ -70,7 +67,6 @@ export const createClient = <Configuration = any,>(
   client.configure(friendRequestsClient)
   client.configure(friendsClient)
   client.configure(friendAcceptationsClient)
-  client.configure(myUsersClient)
   client.configure(conversationsClient)
   client.configure(membersClient)
   return client
