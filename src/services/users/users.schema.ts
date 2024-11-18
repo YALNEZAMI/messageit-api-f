@@ -69,10 +69,7 @@ export const userQuerySchema = {
   type: 'object',
   additionalProperties: false,
   properties: {
-    ...querySyntax(userSchema.properties),
-    ...querySyntax({
-      name: { type: 'string' }
-    })
+    ...querySyntax({ ...userSchema.properties, name: { type: 'string' } })
   }
 } as const
 export type UserQuery = FromSchema<typeof userQuerySchema>
