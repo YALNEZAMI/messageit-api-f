@@ -69,7 +69,7 @@ export class ConversationsService<ServiceParams extends Params = ConversationsPa
 
     return myConversation // Return the result with populated members
   }
-  async get(id: any, params: any): Promise<any> {
+  async get(id: any): Promise<any> {
     const conv = await super._get(id)
     const members = []
     for (const mem of conv.members) {
@@ -78,6 +78,10 @@ export class ConversationsService<ServiceParams extends Params = ConversationsPa
     }
     conv.members = members
     return conv
+  }
+  async create(body: any, params: any): Promise<any> {
+    body.image = 'https://cdn.pixabay.com/photo/2012/04/13/21/07/user-33638_640.png'
+    return await super._create(body)
   }
 }
 

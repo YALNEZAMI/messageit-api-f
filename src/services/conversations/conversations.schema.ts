@@ -26,7 +26,12 @@ export const conversationsSchema = Type.Object(
       }),
       name: Type.String({
         default: 'Basique'
-      })
+      }),
+      image: Type.Optional(
+        Type.String({
+          default: 'https://cdn.pixabay.com/photo/2012/04/13/21/07/user-33638_640.png'
+        })
+      )
     })
   },
   { $id: 'Conversations', additionalProperties: false }

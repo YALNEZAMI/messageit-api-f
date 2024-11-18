@@ -50,6 +50,7 @@ export class UserService<ServiceParams extends Params = UserParams> extends Mong
         name: 'Basique',
         _id: 'basic'
       },
+      image: 'https://cdn.pixabay.com/photo/2012/04/13/21/07/user-33638_640.png',
       onLine: true,
       lastConnection: new Date().toISOString(),
       ...params.query,

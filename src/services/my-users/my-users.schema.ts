@@ -24,7 +24,10 @@ export const myUsersSchema = Type.Object(
     onLine: Type.Boolean(),
     lastConnection: Type.String(),
     email: Type.String(),
-    name: Type.String()
+    name: Type.String(),
+    image: Type.String({
+      default: 'https://cdn.pixabay.com/photo/2012/04/13/21/07/user-33638_640.png'
+    })
   },
   { additionalProperties: false }
 )
@@ -37,7 +40,7 @@ export const myUsersExternalResolver = resolve<MyUsers, HookContext<MyUsersServi
 // Schema for creating new entries
 export const myUsersDataSchema = Type.Pick(
   myUsersSchema,
-  ['_id', 'createdAt', 'updatedAt', 'theme', 'onLine', 'lastConnection', 'email', 'name'],
+  ['_id', 'createdAt', 'updatedAt', 'theme', 'onLine', 'lastConnection', 'email', 'name', 'image'],
   {
     $id: 'MyUsersData'
   }
