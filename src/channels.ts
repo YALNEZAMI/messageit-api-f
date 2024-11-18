@@ -38,9 +38,15 @@ export const channels = (app: Application) => {
     //  const crudMaker = hook.arguments[1].user
     return [app.channel('userId=' + data.sender), app.channel('userId=' + data.recipient)]
   })
+  //publish conversations to members
   app.service('conversations').publish((data: any, hook: HookContext) => {
-    return [app.channel('userId=' + data.user1), app.channel('userId=' + data.user2)]
+    const res: any = []
+    for (const member of data.members) {
+      res.push(app.channel('userId=' + member))
+    }
+    return res
   })
+  //publish users update to its friends
   app.service('my-users').publish(async (data: any, hook: HookContext) => {
     const friends = await app.service('friends').find({
       query: {
@@ -50,6 +56,14 @@ export const channels = (app: Application) => {
     const res: any = []
     for (const fr of friends) {
       res.push(app.channel('userId=' + fr._id.toString()))
+    }
+    return res
+  })
+  app.service('messages').publish(async (message: any, hook: HookContext) => {
+    const conv = await app.service('conversations').get(message.conversation as string)
+    const res: any = []
+    for (const member of conv.members) {
+      res.push(app.channel('userId=' + member._id.toString()))
     }
     return res
   })
