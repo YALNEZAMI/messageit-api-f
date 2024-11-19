@@ -49,12 +49,12 @@ export const messagesPatchValidator = getValidator(messagesPatchSchema, dataVali
 export const messagesPatchResolver = resolve<Messages, HookContext<MessagesService>>({})
 
 // Schema for allowed query properties
-export const messagesQueryProperties = Type.Pick(messagesSchema, ['_id', 'text'])
+export const messagesQueryProperties = Type.Pick(messagesSchema, ['_id', 'text', 'createdAt', 'conversation'])
 export const messagesQuerySchema = Type.Intersect(
   [
     querySyntax(messagesQueryProperties),
     // Add additional query properties here
-    Type.Object({ conversation: Type.Optional(Type.String()) }, { additionalProperties: false })
+    Type.Object({}, { additionalProperties: false })
   ],
   { additionalProperties: false }
 )
