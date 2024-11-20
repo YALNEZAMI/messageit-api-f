@@ -7,7 +7,7 @@ export const privateConversationExistHook = () => {
     const { members } = context.data
 
     // Validate `members` field
-    if (!Array.isArray(members) || members.length !== 2) {
+    if (!Array.isArray(members) || (members.length !== 2 && context.data.type == 'priavte')) {
       throw new Conflict('The "members" field must be an array of exactly two user IDs.')
     }
 
@@ -19,7 +19,7 @@ export const privateConversationExistHook = () => {
       query: { members: sortedMembers }
     })
 
-    if (convs.total > 0) {
+    if (convs.total > 0 && context.data.type == 'private') {
       throw new Conflict('A conversation between these users already exists.')
     }
   }
