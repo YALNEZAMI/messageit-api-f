@@ -11,7 +11,7 @@ import type { MyUsersService } from './my-users.class'
 // Main data model schema
 export const myUsersSchema = Type.Object(
   {
-    _id: Type.String(),
+    _id: ObjectIdSchema(),
     createdAt: Type.String({ format: 'date-time' }),
     updatedAt: Type.String({ format: 'date-time' }),
     theme: Type.Object(
@@ -40,7 +40,7 @@ export const myUsersExternalResolver = resolve<MyUsers, HookContext<MyUsersServi
 // Schema for creating new entries
 export const myUsersDataSchema = Type.Pick(
   myUsersSchema,
-  ['_id', 'createdAt', 'updatedAt', 'theme', 'onLine', 'lastConnection', 'email', 'name', 'image'],
+  ['createdAt', 'updatedAt', 'theme', 'onLine', 'lastConnection', 'email', 'name', 'image'],
   {
     $id: 'MyUsersData'
   }
