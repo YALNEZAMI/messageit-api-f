@@ -30,7 +30,6 @@ export class MessagesService<ServiceParams extends Params = MessagesParams> exte
       }
       message.conversation = await app.service('conversations').get(message.conversation)
     }
-    console.log('messages', messages)
 
     return messages
   }

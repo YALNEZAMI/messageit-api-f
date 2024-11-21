@@ -107,7 +107,6 @@ export class ConversationsService<ServiceParams extends Params = ConversationsPa
           name: body.members[0]
         } as any
       })
-      console.log('body.members[0]', body.members[0])
       //if exists return it
       if (existingConv.length != 0) {
         return existingConv[0]
