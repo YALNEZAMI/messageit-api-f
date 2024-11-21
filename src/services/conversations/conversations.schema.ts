@@ -17,8 +17,7 @@ export const conversationsSchema = Type.Object(
     name: Type.Optional(Type.String()),
     type: Type.String(),
     members: Type.Array(Type.Any(), {
-      uniqueItems: true,
-      minItems: 2
+      uniqueItems: true
     }),
     theme: Type.Object({
       _id: Type.String({
@@ -64,14 +63,14 @@ export const conversationsPatchValidator = getValidator(conversationsPatchSchema
 export const conversationsPatchResolver = resolve<Conversations, HookContext<ConversationsService>>({})
 
 // Schema for allowed query properties
-export const conversationsQueryProperties = Type.Pick(conversationsSchema, ['_id', 'members'])
+export const conversationsQueryProperties = Type.Pick(conversationsSchema, ['_id', 'members', 'type'])
 export const conversationsQuerySchema = Type.Intersect(
   [
     querySyntax(conversationsQueryProperties),
     // Add additional query properties here
     Type.Object(
       {
-        $match: Type.Optional(Type.Object({ members: Type.Array(Type.String()) })),
+        $match: Type.Optional(Type.Object({ members: Type.String() })),
         currentUserId: Type.Optional(Type.String())
       },
       { additionalProperties: false }
