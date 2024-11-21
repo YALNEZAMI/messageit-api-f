@@ -13,6 +13,7 @@ import type {
 import { getDatingProperties } from '../../hooks/dating'
 import { app } from '../../app'
 import { BadRequest } from '@feathersjs/errors'
+import { ObjectId } from 'mongodb'
 
 export type { Conversations, ConversationsData, ConversationsPatch, ConversationsQuery }
 
@@ -29,24 +30,9 @@ export class ConversationsService<ServiceParams extends Params = ConversationsPa
   async find(params: any): Promise<any> {
     const currentUserId = params.query.currentUserId
 
-    // Construct the aggregation pipeline
     const pipeline = [
       {
         $match: { members: currentUserId } // Match conversations where the currentUserId is in the members array
-      },
-      {
-        $lookup: {
-          from: 'my-users', // Name of the collection to join (my-users)
-          localField: 'members', // Field in the conversations collection
-          foreignField: '_id', // Field in the my-users collection
-          as: 'membersDetails' // Alias for the populated members data
-        }
-      },
-      {
-        $unwind: {
-          path: '$membersDetails', // Flatten the membersDetails array
-          preserveNullAndEmptyArrays: true // Keep the conversation even if there are no matching users
-        }
       }
     ]
 
@@ -80,7 +66,70 @@ export class ConversationsService<ServiceParams extends Params = ConversationsPa
     return conv
   }
   async create(body: any, params: any): Promise<any> {
+    // Check for existing conversation
+    if (body.type == 'private') {
+      let convs = await app.service('conversations')._find({
+        query: { type: 'private' },
+        paginate: false
+      })
+      const { members } = body
+      convs = convs.filter((conv: any) => {
+        return (
+          (conv.members[0] == members[0] && conv.members[1] == members[1]) ||
+          (conv.members[0] == members[1] && conv.members[1] == members[0])
+        )
+      })
+      const myConversation = []
+      for (const conversation of convs) {
+        //members ids beconme real users
+        const members = []
+        for (const member of conversation.members) {
+          const user = await app.service('my-users').get(member)
+          members.push(user)
+        }
+        conversation.members = members
+        myConversation.push(conversation)
+      }
+      if (convs.length != 0 && body.type == 'private') {
+        return myConversation[0]
+      }
+    }
+
+    //set default image
     body.image = 'https://cdn.pixabay.com/photo/2012/04/13/21/07/user-33638_640.png'
+    //handle ai conversation case
+    if (body.type == 'ai') {
+      //check if already exist
+      const existingConv: any = await super.find({
+        paginate: false,
+        query: {
+          type: 'ai',
+          name: body.members[0]
+        } as any
+      })
+      console.log('body.members[0]', body.members[0])
+      //if exists return it
+      if (existingConv.length != 0) {
+        return existingConv[0]
+      }
+      //if doesnt exist create a user representing the ai
+      const aiUser = await app.service('my-users').create({
+        name: body.members[0],
+        theme: {
+          _id: 'basic',
+          name: 'Basique'
+        },
+        onLine: true,
+        lastConnection: new Date().toISOString(),
+        email: 'ai@ai.ai',
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        image: 'https://cdn.pixabay.com/photo/2014/04/03/11/55/robot-312566_1280.png'
+      } as any)
+      //push it to covnersation members
+      body.members.push(aiUser._id.toString())
+    }
+    //and finally create and return the new conversation
     return await super._create(body)
   }
 }
