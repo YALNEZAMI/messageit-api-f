@@ -21,7 +21,7 @@ export class MessagesService<ServiceParams extends Params = MessagesParams> exte
   MessagesPatch
 > {
   async find(params: any): Promise<any> {
-    const messages = await super._find(params)
+    const messages = await super.find(params)
     for (const message of messages.data) {
       if (message.sender._id) {
         message.sender = await app.service('my-users').get(message.sender._id)
@@ -30,7 +30,6 @@ export class MessagesService<ServiceParams extends Params = MessagesParams> exte
       }
       message.conversation = await app.service('conversations').get(message.conversation)
     }
-
     return messages
   }
   async create(body: any, params: any): Promise<any> {
