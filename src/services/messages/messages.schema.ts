@@ -54,7 +54,12 @@ export const messagesQuerySchema = Type.Intersect(
   [
     querySyntax(messagesQueryProperties),
     // Add additional query properties here
-    Type.Object({}, { additionalProperties: false })
+    Type.Object(
+      {
+        currentUserId: Type.Optional(Type.String())
+      },
+      { additionalProperties: false }
+    )
   ],
   { additionalProperties: false }
 )
