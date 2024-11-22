@@ -57,13 +57,17 @@ export class ConversationsService<ServiceParams extends Params = ConversationsPa
   }
   async get(id: any): Promise<any> {
     const conv = await super._get(id)
-    const members = []
-    for (const mem of conv.members) {
-      const user = await app.service('my-users').get(mem)
-      members.push(user)
-    }
-    conv.members = members
+
+    conv.members = await this.populateMembers(conv.members)
     return conv
+  }
+  async populateMembers(members: string[]): Promise<any[]> {
+    let res = []
+    for (const mem of members) {
+      const user = await app.service('my-users').get(mem)
+      res.push(user)
+    }
+    return res
   }
   async create(body: any, params: any): Promise<any> {
     // Check for existing conversation
@@ -80,15 +84,9 @@ export class ConversationsService<ServiceParams extends Params = ConversationsPa
         )
       })
       const myConversation = []
-      for (const conversation of convs) {
-        //members ids beconme real users
-        const members = []
-        for (const member of conversation.members) {
-          const user = await app.service('my-users').get(member)
-          members.push(user)
-        }
-        conversation.members = members
-        myConversation.push(conversation)
+      for (const conv of convs) {
+        conv.members = await this.populateMembers(conv.members)
+        myConversation.push(conv)
       }
       if (convs.length != 0 && body.type == 'private') {
         return myConversation[0]
@@ -130,6 +128,35 @@ export class ConversationsService<ServiceParams extends Params = ConversationsPa
     }
     //and finally create and return the new conversation
     return await super._create(body)
+  }
+  async remove(id: any, params: any): Promise<any> {
+    console.log('removedid', id)
+    const conversation = await this.get(id)
+    const currentUserId = params.query.currentUserId
+    //delete conversation definitvely
+    if (conversation.members.length == 1 && currentUserId == conversation.members[0]._id.toString()) {
+      console.log('remove conversation')
+      await app.service('messages').remove(null, {
+        query: {
+          conversation: conversation._id.toString()
+        }
+      })
+      await super.remove(id)
+    } else {
+      console.log('leave conv')
+      await app.service('message-visibility').remove(null, {
+        query: {
+          conversationId: conversation._id.toString(),
+          userId: currentUserId
+        }
+      })
+      await super.patch(id, {
+        $pull: {
+          members: currentUserId // Remove the member with `_id: "2"`
+        }
+      } as any)
+    }
+    return await conversation
   }
 }
 
