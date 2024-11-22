@@ -1,3 +1,4 @@
+import { messageVisibility } from './message-visibility/message-visibility'
 import { messages } from './messages/messages'
 import { members } from './members/members'
 import { conversations } from './conversations/conversations'
@@ -11,6 +12,7 @@ import { myUsers } from './my-users/my-users'
 import type { Application } from '../declarations'
 
 export const services = (app: Application) => {
+  app.configure(messageVisibility)
   app.configure(messages)
   app.configure(members)
   app.configure(conversations)
