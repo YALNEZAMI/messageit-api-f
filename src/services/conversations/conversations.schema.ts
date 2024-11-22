@@ -19,18 +19,18 @@ export const conversationsSchema = Type.Object(
     members: Type.Array(Type.Any(), {
       uniqueItems: true
     }),
+    image: Type.Optional(
+      Type.String({
+        default: 'https://cdn.pixabay.com/photo/2012/04/13/21/07/user-33638_640.png'
+      })
+    ),
     theme: Type.Object({
       _id: Type.String({
         default: 'basic'
       }),
       name: Type.String({
         default: 'Basique'
-      }),
-      image: Type.Optional(
-        Type.String({
-          default: 'https://cdn.pixabay.com/photo/2012/04/13/21/07/user-33638_640.png'
-        })
-      )
+      })
     })
   },
   { $id: 'Conversations', additionalProperties: false }
@@ -44,7 +44,7 @@ export const conversationsExternalResolver = resolve<Conversations, HookContext<
 // Schema for creating new entries
 export const conversationsDataSchema = Type.Pick(
   conversationsSchema,
-  ['members', 'theme', 'name', 'createdAt', 'updatedAt', 'type'],
+  ['members', 'theme', 'name', 'createdAt', 'updatedAt', 'type', 'image'],
   {
     $id: 'ConversationsData'
   }
