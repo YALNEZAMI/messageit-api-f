@@ -15,10 +15,15 @@ export const channels = (app: Application) => {
     app.channel('anonymous').join(connection)
   })
 
-  app.on('login', (authResult: AuthenticationResult, { connection }: Params) => {
+  app.on('login', async (authResult: AuthenticationResult, { connection }: Params) => {
     // connection can be undefined if there is no
     // real-time connection, e.g. when logging in via REST
     if (connection) {
+      const user = await app.service('my-users')._patch(connection.user._id.toString(), {
+        onLine: true
+      })
+      app.service('my-users').emit('patched', user)
+
       // The connection is no longer anonymous, remove it
       app.channel('anonymous').leave(connection)
       app.channel('userId=' + connection.user._id.toString()).join(connection)
@@ -60,10 +65,10 @@ export const channels = (app: Application) => {
     return res
   })
   app.service('messages').publish(async (message: any, hook: HookContext) => {
-    const conv = await app.service('conversations').get(message.conversation as string)
+    const conv = await app.service('conversations')._get(message.conversation as string)
     const res: any = []
     for (const member of conv.members) {
-      res.push(app.channel('userId=' + member._id.toString()))
+      res.push(app.channel('userId=' + member))
     }
     return res
   })
