@@ -21,7 +21,33 @@ export class MessagesService<ServiceParams extends Params = MessagesParams> exte
   MessagesParams,
   MessagesPatch
 > {
+  async findByKey(params: any): Promise<any> {
+    const key = params.query.key
+    const conversationId = params.query.conversation
+    let messages: any = await super.find({
+      query: {
+        conversation: conversationId
+      },
+      paginate: false
+    })
+    messages = messages.filter((msg: any) => {
+      return msg.text.includes(key)
+    })
+
+    messages = await this.populateMessages(messages)
+    return messages
+  }
+  async populateMessages(messages: any[]) {
+    for (const message of messages) {
+      message.sender = await app.service('my-users').get(message.sender)
+      message.conversation = await app.service('conversations').get(message.conversation)
+    }
+    return messages
+  }
   async find(params: any): Promise<any> {
+    if (params.query.key) {
+      return await this.findByKey(params)
+    }
     const currentUserId = params.query.currentUserId
     if (!currentUserId) {
       return []
@@ -45,14 +71,7 @@ export class MessagesService<ServiceParams extends Params = MessagesParams> exte
     }
     const messages = await super.find(params)
     //populate sender object
-    for (const message of messages.data) {
-      if (message.sender._id) {
-        message.sender = await app.service('my-users').get(message.sender._id)
-      } else {
-        message.sender = await app.service('my-users').get(message.sender)
-      }
-      message.conversation = await app.service('conversations').get(message.conversation)
-    }
+    messages.data = await this.populateMessages(messages.data)
     return messages
   }
   async create(body: any, params: any): Promise<any> {
