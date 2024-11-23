@@ -55,12 +55,22 @@ export class ConversationsService<ServiceParams extends Params = ConversationsPa
   async populateConversations(conversations: any[]): Promise<any[]> {
     const convs = []
     for (let conv of conversations) {
+      //set members
       const members = []
       for (let mem of conv.members) {
         const user = await app.service('my-users').get(mem)
         members.push(user)
       }
       conv.members = members
+      //set last Message
+      const message = await app.service('messages')._find({
+        query: {
+          $sort: { createdAt: -1 },
+          conversation: conv._id.toString(),
+          $limit: 1
+        }
+      })
+      conv.lastMessage = message.data[0]
       convs.push(conv)
     }
     return convs
