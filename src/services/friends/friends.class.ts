@@ -20,6 +20,7 @@ export class FriendsService<ServiceParams extends Params = FriendsParams> extend
   FriendsPatch
 > {
   async create(data: any, params: FriendsParams): Promise<any> {
+    data.recipient = params.user!._id.toString() as string
     const areFriends = await this.areFriends(data.recipient, data.sender)
     if (areFriends) {
       return { status: 500, message: 'Vous êtes déjà amis !' }
@@ -31,7 +32,10 @@ export class FriendsService<ServiceParams extends Params = FriendsParams> extend
       ...getDatingProperties()
     }
     await app.service('friend-requests').remove('', {
-      query: queryRemoveRequest
+      ...params,
+      query: {
+        otherUserId: data.sender
+      }
     })
     return await super._create(data, params)
   }

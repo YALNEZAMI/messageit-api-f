@@ -10,10 +10,7 @@ import type {
   ConversationsPatch,
   ConversationsQuery
 } from './conversations.schema'
-import { getDatingProperties } from '../../hooks/dating'
 import { app } from '../../app'
-import { BadRequest } from '@feathersjs/errors'
-import { ObjectId } from 'mongodb'
 
 export type { Conversations, ConversationsData, ConversationsPatch, ConversationsQuery }
 
@@ -28,7 +25,7 @@ export class ConversationsService<ServiceParams extends Params = ConversationsPa
 > {
   // TODO: Handle additional functionalities like unfriend logic
   async find(params: any): Promise<any> {
-    const currentUserId = params.query.currentUserId
+    const currentUserId = params.user._id.toString()
 
     const pipeline = [
       {
@@ -42,17 +39,17 @@ export class ConversationsService<ServiceParams extends Params = ConversationsPa
       paginate: params.paginate, // Pass the pagination parameters
       pipeline: pipeline // Pass the aggregation pipeline
     })
-    const convs = await this.populateConversations(result.data)
+    const convs = await this.populateConversations(result.data, params)
 
     return convs // Return the result with populated members
   }
-  async get(id: any): Promise<any> {
+  async get(id: any, params: any): Promise<any> {
     const conv = await super._get(id)
 
-    const convs = await this.populateConversations([conv])
+    const convs = await this.populateConversations([conv], params)
     return convs[0]
   }
-  async populateConversations(conversations: any[]): Promise<any[]> {
+  async populateConversations(conversations: any[], params: any): Promise<any[]> {
     const convs = []
     for (let conv of conversations) {
       //set members
@@ -63,7 +60,9 @@ export class ConversationsService<ServiceParams extends Params = ConversationsPa
       }
       conv.members = members
       //set last Message
+
       const message = await app.service('messages')._find({
+        ...params,
         query: {
           $sort: { createdAt: -1 },
           conversation: conv._id.toString(),
@@ -89,7 +88,7 @@ export class ConversationsService<ServiceParams extends Params = ConversationsPa
           (conv.members[0] == members[1] && conv.members[1] == members[0])
         )
       })
-      convs = await this.populateConversations(convs)
+      convs = await this.populateConversations(convs, params)
       if (convs.length != 0 && body.type == 'private') {
         return convs[0]
       }
@@ -132,8 +131,8 @@ export class ConversationsService<ServiceParams extends Params = ConversationsPa
     return await super._create(body)
   }
   async remove(id: any, params: any): Promise<any> {
-    const conversation = await this.get(id)
-    const currentUserId = params.query.currentUserId
+    const conversation = await this.get(id, params)
+    const currentUserId = params.user._id.toString()
     //delete conversation definitvely
     if (conversation.members.length == 1 && currentUserId == conversation.members[0]._id.toString()) {
       await app.service('messages').remove(null, {

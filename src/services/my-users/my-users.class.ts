@@ -19,31 +19,32 @@ export class MyUsersService<ServiceParams extends Params = MyUsersParams> extend
 > {
   async find(params: any): Promise<any> {
     const name: string = params.query?.name
-    const currentUserId = params.query?.currentUserId
+    const currentUserId = params.user._id.toString()
     const myusers = await super._find({
       paginate: false
     })
     const filtered = myusers.filter((user) => {
-      return user.name.includes(name) && user._id != currentUserId
+      return user.name.toLowerCase().trim().includes(name.toLowerCase().trim()) && user._id != currentUserId
     })
     return filtered
   }
 
   async patch(id: any, data: any, params: any): Promise<any> {
+    const currentUserId = params.user._id.toString()
     // Check if the user already exists by name
     if (params.query.statusChecking) {
       return await super.patch(id, {
         onLine: data.onLine
       })
     }
-    const userExistByName = await this.find({
+    const userExistByName = await this._find({
       query: {
         name: data.name
       }
     })
 
     // Check if the user already exists by email
-    const userExistByEmail = await this.find({
+    const userExistByEmail = await this._find({
       query: {
         email: data.email
       }

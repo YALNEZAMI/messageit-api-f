@@ -65,7 +65,7 @@ export const friendRequestsQuerySchema = {
   type: 'object',
   additionalProperties: false,
   properties: {
-    ...querySyntax(friendRequestsSchema.properties)
+    ...querySyntax({ ...friendRequestsSchema.properties, otherUserId: { type: 'string' } })
   }
 } as const
 export type FriendRequestsQuery = FromSchema<typeof friendRequestsQuerySchema>

@@ -7,7 +7,6 @@ import type { Static } from '@feathersjs/typebox'
 import type { HookContext } from '../../declarations'
 import { dataValidator, queryValidator } from '../../validators'
 import type { MessagesService } from './messages.class'
-import { conversations } from '../conversations/conversations'
 
 // Main data model schema
 export const messagesSchema = Type.Object(
@@ -56,7 +55,6 @@ export const messagesQuerySchema = Type.Intersect(
     // Add additional query properties here
     Type.Object(
       {
-        currentUserId: Type.Optional(Type.String()),
         key: Type.Optional(Type.String())
       },
       { additionalProperties: false }

@@ -11,8 +11,6 @@ import { getDatingProperties } from '../../hooks/dating'
 export type { User, UserData, UserPatch, UserQuery }
 
 export interface UserParams extends MongoDBAdapterParams<UserQuery> {}
-//TODO try $regex in back end to search peaple
-// By default calls the standard MongoDB adapter service methods but can be customized with your own functionality.
 export class UserService<ServiceParams extends Params = UserParams> extends MongoDBService<
   User,
   UserData,
@@ -25,8 +23,9 @@ export class UserService<ServiceParams extends Params = UserParams> extends Mong
     const userExistByEmail = await this.find({
       query: { email: data.email }
     })
-    const userExistByName = await app.service('my-users').find({
-      query: { name: query.name as string }
+    const userExistByName = await app.service('my-users')._find({
+      query: { name: query.name as string },
+      ...params
     })
     if (userExistByEmail.total > 0) {
       return {
@@ -59,7 +58,7 @@ export class UserService<ServiceParams extends Params = UserParams> extends Mong
     return creating2
   }
   async patch(id: any, data: any): Promise<any> {
-    const userExistByEmail = await this.find({
+    const userExistByEmail = await this._find({
       query: {
         email: data.email
       }

@@ -10,6 +10,7 @@ import type {
   MessageVisibilityPatch,
   MessageVisibilityQuery
 } from './message-visibility.schema'
+import { app } from '../../app'
 
 export type { MessageVisibility, MessageVisibilityData, MessageVisibilityPatch, MessageVisibilityQuery }
 
@@ -23,7 +24,22 @@ export class MessageVisibilityService<
   MessageVisibilityData,
   MessageVisibilityParams,
   MessageVisibilityPatch
-> {}
+> {
+  async remove(id: any, params: any): Promise<any> {
+    const messageId = params.query.messageId
+    const visibility = await super.find({
+      query: {
+        messageId,
+        $limit: 0
+      },
+      paginate: false
+    })
+    if (visibility.total == 1) {
+      await app.service('messages')._remove(messageId)
+    }
+    return await super.remove(id, params)
+  }
+}
 
 export const getOptions = (app: Application): MongoDBAdapterOptions => {
   return {

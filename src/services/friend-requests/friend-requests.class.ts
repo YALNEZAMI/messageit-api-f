@@ -21,7 +21,8 @@ export class FriendRequestsService<
   ServiceParams extends Params = FriendRequestsParams
 > extends MongoDBService<FriendRequests, FriendRequestsData, FriendRequestsParams, FriendRequestsPatch> {
   async create(data: any, params?: any): Promise<any> {
-    const friendRequestsExist = await this.find({
+    data.sender = params.user._id.toString()
+    const friendRequestsExist = await this._find({
       query: {
         $or: [
           {
@@ -46,14 +47,14 @@ export class FriendRequestsService<
     const creating = await super._create(data, params)
     return creating
   }
-  async remove(id: any, params: FriendRequestsParams): Promise<any> {
-    const query: FriendRequestsQuery = params.query!
-
-    const friendReqs = await this.find({
+  async remove(id: any, params: any): Promise<any> {
+    const otherUserId: FriendRequestsQuery = params.query!.otherUserId
+    const currentUserId = params.user._id.toString()
+    const friendReqs = await this._find({
       query: {
         $or: [
-          { sender: query.sender, recipient: query.recipient },
-          { recipient: query.sender, sender: query.recipient }
+          { sender: currentUserId, recipient: otherUserId },
+          { recipient: currentUserId, sender: otherUserId }
         ]
       }
     })
@@ -64,7 +65,24 @@ export class FriendRequestsService<
       }
     }
     const friendReqId: any = friendReqs.data[0]._id
-    return await super._remove(friendReqId, {})
+    const removing = await super._remove(friendReqId, {})
+    return removing
+  }
+  async find(params: any): Promise<any> {
+    const currentUserId = params.user._id.toString()
+
+    return await super.find({
+      query: {
+        $or: [
+          {
+            sender: currentUserId
+          },
+          {
+            recipient: currentUserId
+          }
+        ]
+      }
+    })
   }
 }
 

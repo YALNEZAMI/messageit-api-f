@@ -28,16 +28,31 @@ export class FriendAcceptationsService<
     return await super._create(data, params)
   }
   //remove acceptations linked to @params.query.id
-  async remove(id: any, params: FriendAcceptationsParams): Promise<any> {
-    const query = { sender: params.query!.id }
-    const acc = await this.find({ query })
+  async remove(id: any, params: any): Promise<any> {
+    const acc = await this.find(params)
     if (acc.total == 0) {
       return { status: 500, message: 'Acceptation déjà supprimée' }
     }
-    acc.data.map(async (acc) => {
+    acc.data.map(async (acc: any) => {
       await super._remove(acc._id as string)
     })
     return { status: 200, message: 'accepations cleared' }
+  }
+  async find(params: any): Promise<any> {
+    const currentUserId = params.user._id.toString()
+
+    return await super.find({
+      query: {
+        $or: [
+          {
+            sender: currentUserId
+          },
+          {
+            recipient: currentUserId
+          }
+        ]
+      }
+    })
   }
 }
 

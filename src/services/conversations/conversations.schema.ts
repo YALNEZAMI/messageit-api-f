@@ -70,8 +70,7 @@ export const conversationsQuerySchema = Type.Intersect(
     // Add additional query properties here
     Type.Object(
       {
-        $match: Type.Optional(Type.Object({ members: Type.String() })),
-        currentUserId: Type.Optional(Type.String())
+        $match: Type.Optional(Type.Object({ members: Type.String() }))
       },
       { additionalProperties: false }
     )
