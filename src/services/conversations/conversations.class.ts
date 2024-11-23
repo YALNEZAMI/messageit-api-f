@@ -42,32 +42,28 @@ export class ConversationsService<ServiceParams extends Params = ConversationsPa
       paginate: params.paginate, // Pass the pagination parameters
       pipeline: pipeline // Pass the aggregation pipeline
     })
-    const myConversation = []
-    for (const conversation of result.data) {
-      const members = []
-      for (const member of conversation.members) {
-        const user = await app.service('my-users').get(member)
-        members.push(user)
-      }
-      conversation.members = members
-      myConversation.push(conversation)
-    }
+    const convs = await this.populateConversations(result.data)
 
-    return myConversation // Return the result with populated members
+    return convs // Return the result with populated members
   }
   async get(id: any): Promise<any> {
     const conv = await super._get(id)
 
-    conv.members = await this.populateMembers(conv.members)
-    return conv
+    const convs = await this.populateConversations([conv])
+    return convs[0]
   }
-  async populateMembers(members: string[]): Promise<any[]> {
-    let res = []
-    for (const mem of members) {
-      const user = await app.service('my-users').get(mem)
-      res.push(user)
+  async populateConversations(conversations: any[]): Promise<any[]> {
+    const convs = []
+    for (let conv of conversations) {
+      const members = []
+      for (let mem of conv.members) {
+        const user = await app.service('my-users').get(mem)
+        members.push(user)
+      }
+      conv.members = members
+      convs.push(conv)
     }
-    return res
+    return convs
   }
   async create(body: any, params: any): Promise<any> {
     // Check for existing conversation
@@ -83,13 +79,9 @@ export class ConversationsService<ServiceParams extends Params = ConversationsPa
           (conv.members[0] == members[1] && conv.members[1] == members[0])
         )
       })
-      const myConversation = []
-      for (const conv of convs) {
-        conv.members = await this.populateMembers(conv.members)
-        myConversation.push(conv)
-      }
+      convs = await this.populateConversations(convs)
       if (convs.length != 0 && body.type == 'private') {
-        return myConversation[0]
+        return convs[0]
       }
     }
 
@@ -130,12 +122,10 @@ export class ConversationsService<ServiceParams extends Params = ConversationsPa
     return await super._create(body)
   }
   async remove(id: any, params: any): Promise<any> {
-    console.log('removedid', id)
     const conversation = await this.get(id)
     const currentUserId = params.query.currentUserId
     //delete conversation definitvely
     if (conversation.members.length == 1 && currentUserId == conversation.members[0]._id.toString()) {
-      console.log('remove conversation')
       await app.service('messages').remove(null, {
         query: {
           conversation: conversation._id.toString()
@@ -143,7 +133,6 @@ export class ConversationsService<ServiceParams extends Params = ConversationsPa
       })
       await super.remove(id)
     } else {
-      console.log('leave conv')
       await app.service('message-visibility').remove(null, {
         query: {
           conversationId: conversation._id.toString(),
