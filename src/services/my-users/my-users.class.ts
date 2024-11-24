@@ -6,6 +6,7 @@ import type { MongoDBAdapterParams, MongoDBAdapterOptions } from '@feathersjs/mo
 import type { Application } from '../../declarations'
 import type { MyUsers, MyUsersData, MyUsersPatch, MyUsersQuery } from './my-users.schema'
 import { app } from '../../app'
+import { FriendsService } from '../friends/friends.class'
 
 export type { MyUsers, MyUsersData, MyUsersPatch, MyUsersQuery }
 
@@ -40,56 +41,36 @@ export class MyUsersService<ServiceParams extends Params = MyUsersParams> extend
         !user.aiUser
       )
     })
-    filtered = filtered.map(async (user: any) => {
-      //formating based on friendship
+    // filtered = filtered.map(async (user: any) => {
+    //   //formating based on friendship
 
-      const areFriend = await this.areFriends(user._id, params)
-      if (!areFriend) {
-        return {
-          image: user.image,
-          _id: user._id,
-          name: user.name
-        }
-      }
-      return user
-    })
+    //   const areFriend = await FriendsService.areFriends(user._id, params)
+    //   console.log('arefriends', areFriend)
+    //   if (!areFriend) {
+    //     return {
+    //       image: user.image,
+    //       _id: user._id,
+    //       name: user.name
+    //     }
+    //   }
+    //   return user
+    // })
 
     return filtered
   }
-  async areFriends(id: string, id2: string): Promise<boolean> {
-    const req = await app.service('friends')._find({
-      query: {
-        $or: [
-          {
-            recipient: id,
-            sender: id2
-          },
-          {
-            recipient: id2,
-            sender: id
-          }
-        ]
-      }
-    })
-    return req.total != 0
-  }
+
   async get(id: any, params: any): Promise<any> {
     const currentUserId = params.user._id.toString()
     if (id == currentUserId) {
       return await super._get(id, params)
     }
-    const areFriend = await this.areFriends(id, currentUserId)
-    let query
-    if (areFriend) {
-      query = {}
-    } else {
-      query = {
-        $select: {
-          theme: 0,
-          email: 0,
-          createdAt: 0,
-          updatedAt: 0
-        }
+
+    let query = {
+      $select: {
+        theme: 0,
+        email: 0,
+        createdAt: 0,
+        updatedAt: 0
       }
     }
     return await super._get(id, {
