@@ -33,18 +33,36 @@ export class MessagesService<ServiceParams extends Params = MessagesParams> exte
       return msg.text.includes(key)
     })
 
-    messages = await this.populateMessages(messages, params)
+    messages = await MessagesService.populateMessages(messages, params)
     return messages
   }
-  async populateMessages(messages: any[], params: any) {
+  static async populateMessages(messages: any[], params: any) {
+    const res = []
     for (const message of messages) {
-      message.sender = await app.service('my-users').get(message.sender)
+      //set refered message if exist
+      if (message.referedMessage && message.referedMessage != '') {
+        message.referedMessage = await app.service('messages').get(message.referedMessage)
+        const sender = await app.service('my-users').get(message.referedMessage.sender, {
+          ...params,
+          query: {}
+        })
+
+        message.referedMessage.sender = sender
+
+        // const populating = await populateMessages([message.referedMessage], params)
+        // message.referedMessage = populating[0]
+      }
+      //set sender
+      const sender = await app.service('my-users').get(message.sender)
+      message.sender = sender
+      //set conversation
       message.conversation = await app.service('conversations').get(message.conversation, {
         ...params,
         query: {}
       })
+      res.push(message)
     }
-    return messages
+    return res
   }
   async find(params: any): Promise<any> {
     if (params.query.key) {
@@ -70,7 +88,7 @@ export class MessagesService<ServiceParams extends Params = MessagesParams> exte
     }
     const messages = await super.find(params)
     //populate sender object
-    messages.data = await this.populateMessages(messages.data, params)
+    messages.data = await MessagesService.populateMessages(messages.data, params)
     return messages
   }
   async create(body: any, params: any): Promise<any> {
@@ -118,6 +136,8 @@ export class MessagesService<ServiceParams extends Params = MessagesParams> exte
       userMessage = await super._create(body, params)
       //set visibility
       await this.setVisibility(userMessage, conversation)
+      const populating = await MessagesService.populateMessages([userMessage], params)
+      userMessage = populating[0]
       return userMessage
     }
   }
