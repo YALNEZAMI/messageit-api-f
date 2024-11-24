@@ -39,8 +39,34 @@ export class ConversationsService<ServiceParams extends Params = ConversationsPa
       paginate: params.paginate, // Pass the pagination parameters
       pipeline: pipeline // Pass the aggregation pipeline
     })
-    const convs = await this.populateConversations(result.data, params)
+    let convs = await this.populateConversations(result.data, params)
+    const keyQuery = params.query.key
+    console.log('params.query', params.query)
+    if (keyQuery) {
+      const key: string = keyQuery.toLowerCase().trim()
+      console.log('key', key)
+      convs = convs.filter((conv) => {
+        switch (conv.type) {
+          case 'ai':
+            return 'assistant boby ai'.toLowerCase().includes(key)
+          case 'group':
+            return conv.name.toLowerCase().includes(key)
+          case 'private':
+            const otherUser = conv.members.find((member: any) => {
+              return member._id.toString() != currentUserId
+            })
+            if (otherUser) {
+              return otherUser.name.includes(key)
+            } else {
+              return false
+            }
+          default:
+            return false
 
+            break
+        }
+      })
+    }
     return convs // Return the result with populated members
   }
   async get(id: any, params: any): Promise<any> {
