@@ -20,11 +20,22 @@ export class MyUsersService<ServiceParams extends Params = MyUsersParams> extend
   async find(params: any): Promise<any> {
     const name: string = params.query?.name
     const currentUserId = params.user._id.toString()
-    const myusers = await super._find({
+    const myusers: any = await super._find({
+      query: {
+        $select: {
+          theme: 0,
+          email: 0
+        }
+      },
       paginate: false
-    })
-    const filtered = myusers.filter((user) => {
-      return user.name.toLowerCase().trim().includes(name.toLowerCase().trim()) && user._id != currentUserId
+    } as any)
+    console.log('myusers', myusers)
+    const filtered = myusers.filter((user: any) => {
+      return (
+        user.name.toLowerCase().trim().includes(name.toLowerCase().trim()) &&
+        user._id != currentUserId &&
+        !user.aiUser
+      )
     })
     return filtered
   }

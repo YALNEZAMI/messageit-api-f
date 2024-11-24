@@ -120,6 +120,7 @@ export class ConversationsService<ServiceParams extends Params = ConversationsPa
           _id: 'basic',
           name: 'Basique'
         },
+        aiUser: true,
         onLine: true,
         lastConnection: new Date().toISOString(),
         email: 'ai@ai.ai',

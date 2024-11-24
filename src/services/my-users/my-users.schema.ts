@@ -14,6 +14,11 @@ export const myUsersSchema = Type.Object(
     _id: ObjectIdSchema(),
     createdAt: Type.String({ format: 'date-time' }),
     updatedAt: Type.String({ format: 'date-time' }),
+    aiUser: Type.Optional(
+      Type.Boolean({
+        default: false
+      })
+    ),
     theme: Type.Object(
       {
         _id: Type.String(),
@@ -40,7 +45,7 @@ export const myUsersExternalResolver = resolve<MyUsers, HookContext<MyUsersServi
 // Schema for creating new entries
 export const myUsersDataSchema = Type.Pick(
   myUsersSchema,
-  ['createdAt', 'updatedAt', 'theme', 'onLine', 'lastConnection', 'email', 'name', 'image'],
+  ['createdAt', 'updatedAt', 'theme', 'onLine', 'lastConnection', 'email', 'name', 'image', 'aiUser'],
   {
     $id: 'MyUsersData'
   }
