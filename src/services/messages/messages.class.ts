@@ -53,7 +53,10 @@ export class MessagesService<ServiceParams extends Params = MessagesParams> exte
         // message.referedMessage = populating[0]
       }
       //set sender
-      const sender = await app.service('my-users').get(message.sender)
+      const sender = await app.service('my-users').get(message.sender, {
+        ...params,
+        query: {}
+      })
       message.sender = sender
       //set conversation
       message.conversation = await app.service('conversations').get(message.conversation, {
@@ -106,7 +109,10 @@ export class MessagesService<ServiceParams extends Params = MessagesParams> exte
       })
       //create user message
       userMessage = await super._create(body, params)
-      userMessage.sender = await app.service('my-users').get(body.sender)
+      userMessage.sender = await app.service('my-users').get(body.sender, {
+        ...params,
+        query: {}
+      })
       //create ai response message
 
       let aiUser = await app.service('my-users').find({

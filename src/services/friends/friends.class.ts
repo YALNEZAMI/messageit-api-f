@@ -86,7 +86,10 @@ export class FriendsService<ServiceParams extends Params = FriendsParams> extend
     const friends: any[] = []
 
     for (const id of friendsIds) {
-      const user = await app.service('my-users').get(id)
+      const user = await app.service('my-users').get(id, {
+        ...params,
+        query: {}
+      })
       friends.push(user)
     }
 

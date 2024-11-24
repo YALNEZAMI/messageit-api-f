@@ -55,7 +55,10 @@ export class ConversationsService<ServiceParams extends Params = ConversationsPa
       //set members
       const members = []
       for (let mem of conv.members) {
-        const user = await app.service('my-users').get(mem)
+        const user = await app.service('my-users').get(mem, {
+          ...params,
+          query: {}
+        })
         members.push(user)
       }
       conv.members = members
@@ -71,7 +74,10 @@ export class ConversationsService<ServiceParams extends Params = ConversationsPa
       })
       if (message.total > 0) {
         conv.lastMessage = message.data[0]
-        conv.lastMessage.sender = await app.service('my-users').get(conv.lastMessage.sender)
+        conv.lastMessage.sender = await app.service('my-users').get(conv.lastMessage.sender, {
+          ...params,
+          query: {}
+        })
       }
       convs.push(conv)
     }
