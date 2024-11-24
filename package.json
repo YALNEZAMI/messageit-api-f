@@ -58,6 +58,7 @@
     "@feathersjs/socketio": "^5.0.31",
     "@feathersjs/transport-commons": "^5.0.31",
     "@feathersjs/typebox": "^5.0.31",
+    "dotenv": "^16.4.5",
     "messageit-api-f": "file:",
     "mongodb": "^6.10.0",
     "ollama": "^0.5.10",

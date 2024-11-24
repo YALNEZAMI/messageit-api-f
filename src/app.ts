@@ -11,6 +11,7 @@ import { mongodb } from './mongodb'
 import { authentication } from './authentication'
 import { services } from './services/index'
 import { channels } from './channels'
+import * as dotenv from 'dotenv'
 
 const app: Application = koa(feathers())
 
@@ -23,6 +24,7 @@ app.use(serveStatic(app.get('public')))
 app.use(errorHandler())
 app.use(parseAuthentication())
 app.use(bodyParser())
+dotenv.config()
 
 // Configure services and transports
 app.configure(rest())

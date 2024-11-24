@@ -3,6 +3,7 @@ import type { Params } from '@feathersjs/feathers'
 import { MongoDBService } from '@feathersjs/mongodb'
 import type { MongoDBAdapterParams, MongoDBAdapterOptions } from '@feathersjs/mongodb'
 import ollama from 'ollama'
+import axios from 'axios'
 
 import type { Application } from '../../declarations'
 import type { Messages, MessagesData, MessagesPatch, MessagesQuery } from './messages.schema'
@@ -95,6 +96,8 @@ export class MessagesService<ServiceParams extends Params = MessagesParams> exte
     return messages
   }
   async create(body: any, params: any): Promise<any> {
+    await this.geminiRequest('capital of france')
+
     let userMessage: any
     const conversation = await app.service('conversations').get(body.conversation, {
       ...params,
@@ -103,10 +106,12 @@ export class MessagesService<ServiceParams extends Params = MessagesParams> exte
 
     //handl ai conversations
     if (conversation.type == 'ai') {
-      const response = await ollama.chat({
-        model: 'llama3:latest',
-        messages: [{ role: 'user', content: body.text }]
-      })
+      //TODO mesuse gemini api
+      // const response = await ollama.chat({
+      //   model: 'llama3:latest',
+      //   messages: [{ role: 'user', content: body.text }]
+      // })
+      const aiResponse = await this.geminiRequest(body.text)
       //create user message
       userMessage = await super._create(body, params)
       userMessage.sender = await app.service('my-users').get(body.sender, {
@@ -114,25 +119,26 @@ export class MessagesService<ServiceParams extends Params = MessagesParams> exte
         query: {}
       })
       //create ai response message
-
-      let aiUser = await app.service('my-users').find({
+      let aiUser: any = await app.service('my-users')._find({
+        ...params,
         query: {
           name: body.sender
         }
       })
-      aiUser = aiUser[0]
+      aiUser = aiUser.data[0]._id
       const aiMessage = await super.create(
         {
           ...body,
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString(),
-          text: response.message.content,
+          text: aiResponse,
           sender: aiUser
         },
         params
       )
       //set visibility
       await this.setVisibility(userMessage, conversation)
+      await this.setVisibility(aiMessage, conversation)
 
       return {
         myMessage: userMessage,
@@ -145,6 +151,43 @@ export class MessagesService<ServiceParams extends Params = MessagesParams> exte
       const populating = await MessagesService.populateMessages([userMessage], params)
       userMessage = populating[0]
       return userMessage
+    }
+  }
+
+  async geminiRequest(promt: string) {
+    // Your API key
+
+    const GEMINI_KEY = process.env.GEMINI_KEY
+    // API endpoint
+    const endpoint =
+      'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent'
+
+    try {
+      // Request payload
+      const data = {
+        contents: [
+          {
+            parts: [
+              {
+                text: promt
+              }
+            ]
+          }
+        ]
+      }
+
+      // Send POST request
+      const response = await axios.post(`${endpoint}?key=${GEMINI_KEY}`, data, {
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      })
+
+      // Log the response data
+      let content = response.data.candidates[0].content.parts[0].text
+      return content
+    } catch (error: any) {
+      console.error('Error:', error.response ? error.response.data : error.message)
     }
   }
   async setVisibility(message: any, conversation: any) {
