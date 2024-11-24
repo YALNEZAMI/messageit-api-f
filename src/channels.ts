@@ -65,10 +65,10 @@ export const channels = (app: Application) => {
     return res
   })
   app.service('messages').publish(async (message: any, hook: HookContext) => {
-    const conv = await app.service('conversations')._get(message.conversation as string)
+    let conv = message.conversation
     const res: any = []
     for (const member of conv.members) {
-      res.push(app.channel('userId=' + member))
+      res.push(app.channel('userId=' + member._id.toString()))
     }
     return res
   })
