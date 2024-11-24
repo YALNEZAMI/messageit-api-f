@@ -69,7 +69,10 @@ export class ConversationsService<ServiceParams extends Params = ConversationsPa
           $limit: 1
         }
       })
-      conv.lastMessage = message.data[0]
+      if (message.total > 0) {
+        conv.lastMessage = message.data[0]
+        conv.lastMessage.sender = await app.service('my-users').get(conv.lastMessage.sender)
+      }
       convs.push(conv)
     }
     return convs
