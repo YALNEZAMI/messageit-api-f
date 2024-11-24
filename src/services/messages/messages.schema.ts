@@ -14,7 +14,7 @@ export const messagesSchema = Type.Object(
     _id: ObjectIdSchema(),
     createdAt: Type.String({ format: 'date-time' }),
     updatedAt: Type.String({ format: 'date-time' }),
-
+    referedMessage: Type.Any(),
     text: Type.String(),
     sender: Type.Any(),
     conversation: Type.Any()
@@ -30,7 +30,7 @@ export const messagesExternalResolver = resolve<Messages, HookContext<MessagesSe
 // Schema for creating new entries
 export const messagesDataSchema = Type.Pick(
   messagesSchema,
-  ['text', 'sender', 'conversation', 'createdAt', 'updatedAt'],
+  ['text', 'sender', 'conversation', 'createdAt', 'updatedAt', 'referedMessage'],
   {
     $id: 'MessagesData'
   }
