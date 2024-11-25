@@ -16,7 +16,11 @@ export class IsTypingService<ServiceParams extends Params = IsTypingParams> exte
   IsTypingData,
   IsTypingParams,
   IsTypingPatch
-> {}
+> {
+  async create(body: any): Promise<any> {
+    return body
+  }
+}
 
 export const getOptions = (app: Application): MongoDBAdapterOptions => {
   return {
