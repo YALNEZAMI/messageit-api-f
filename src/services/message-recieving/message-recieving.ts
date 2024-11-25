@@ -17,6 +17,7 @@ import {
 import type { Application } from '../../declarations'
 import { MessageRecievingService, getOptions } from './message-recieving.class'
 import { messageRecievingPath, messageRecievingMethods } from './message-recieving.shared'
+import setTimestamps from '../../hooks/dating'
 
 export * from './message-recieving.class'
 export * from './message-recieving.schema'
@@ -47,6 +48,7 @@ export const messageRecieving = (app: Application) => {
       find: [],
       get: [],
       create: [
+        setTimestamps(),
         schemaHooks.validateData(messageRecievingDataValidator),
         schemaHooks.resolveData(messageRecievingDataResolver)
       ],
