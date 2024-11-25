@@ -41,10 +41,8 @@ export class ConversationsService<ServiceParams extends Params = ConversationsPa
     })
     let convs = await this.populateConversations(result.data, params)
     const keyQuery = params.query.key
-    console.log('params.query', params.query)
     if (keyQuery) {
       const key: string = keyQuery.toLowerCase().trim()
-      console.log('key', key)
       convs = convs.filter((conv) => {
         switch (conv.type) {
           case 'ai':

@@ -45,7 +45,6 @@ export class MyUsersService<ServiceParams extends Params = MyUsersParams> extend
     //   //formating based on friendship
 
     //   const areFriend = await FriendsService.areFriends(user._id, params)
-    //   console.log('arefriends', areFriend)
     //   if (!areFriend) {
     //     return {
     //       image: user.image,
