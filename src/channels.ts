@@ -72,4 +72,12 @@ export const channels = (app: Application) => {
     }
     return res
   })
+  app.service('is-typing').publish(async (typing: any, hook: HookContext) => {
+    const res = []
+    const conv = await app.service('conversations').get(typing.conversation, hook.params)
+    for (const member of conv.members) {
+      res.push(app.channel('userId=' + member._id.toString()))
+    }
+    return res
+  })
 }
