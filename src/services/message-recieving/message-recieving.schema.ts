@@ -15,7 +15,8 @@ export const messageRecievingSchema = Type.Object(
     message: Type.String(),
     recipient: Type.String(),
     conversation: Type.String(),
-    createdAt: Type.Optional(Type.String())
+    createdAt: Type.Optional(Type.String()),
+    updatedAt: Type.Optional(Type.String())
   },
   { $id: 'MessageRecieving', additionalProperties: false }
 )
@@ -31,7 +32,7 @@ export const messageRecievingExternalResolver = resolve<
 // Schema for creating new entries
 export const messageRecievingDataSchema = Type.Pick(
   messageRecievingSchema,
-  ['recipient', 'conversation', 'message'],
+  ['recipient', 'conversation', 'message', 'createdAt', 'updatedAt'],
   {
     $id: 'MessageRecievingData'
   }
@@ -57,7 +58,8 @@ export const messageRecievingQueryProperties = Type.Pick(messageRecievingSchema,
   '_id',
   'recipient',
   'conversation',
-  'message'
+  'message',
+  'createdAt'
 ])
 export const messageRecievingQuerySchema = Type.Intersect(
   [
