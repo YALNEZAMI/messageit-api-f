@@ -63,7 +63,10 @@ export const channels = (app: Application) => {
       res.push(app.channel('userId=' + fr._id.toString()))
     }
     //and conversations memebers
-    const convs = await app.service('conversations').find(hook.params)
+    const convs = await app.service('conversations').find({
+      ...hook.params,
+      query: {}
+    })
     for (const conv of convs) {
       for (const mem of conv.members) {
         res.push(app.channel('userId=' + mem._id.toString()))
