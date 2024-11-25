@@ -4,6 +4,14 @@ import type { TransportConnection, Application } from '@feathersjs/feathers'
 import authenticationClient from '@feathersjs/authentication-client'
 import type { AuthenticationClientOptions } from '@feathersjs/authentication-client'
 
+import { messageSeenClient } from './services/message-seen/message-seen.shared'
+export type {
+  MessageSeen,
+  MessageSeenData,
+  MessageSeenQuery,
+  MessageSeenPatch
+} from './services/message-seen/message-seen.shared'
+
 import { messageRecievingClient } from './services/message-recieving/message-recieving.shared'
 export type {
   MessageRecieving,
@@ -105,5 +113,6 @@ export const createClient = <Configuration = any,>(
   client.configure(messageVisibilityClient)
   client.configure(isTypingClient)
   client.configure(messageRecievingClient)
+  client.configure(messageSeenClient)
   return client
 }
