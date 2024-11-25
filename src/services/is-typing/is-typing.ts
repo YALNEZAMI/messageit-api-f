@@ -17,6 +17,7 @@ import {
 import type { Application } from '../../declarations'
 import { IsTypingService, getOptions } from './is-typing.class'
 import { isTypingPath, isTypingMethods } from './is-typing.shared'
+import setTimestamps from '../../hooks/dating'
 
 export * from './is-typing.class'
 export * from './is-typing.schema'
@@ -47,6 +48,7 @@ export const isTyping = (app: Application) => {
       find: [],
       get: [],
       create: [
+        setTimestamps(),
         schemaHooks.validateData(isTypingDataValidator),
         schemaHooks.resolveData(isTypingDataResolver)
       ],

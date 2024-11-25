@@ -13,7 +13,9 @@ export const isTypingSchema = Type.Object(
   {
     _id: ObjectIdSchema(),
     typer: Type.String(),
-    conversation: Type.String()
+    conversation: Type.String(),
+    createdAt: Type.String({ format: 'date-time' }),
+    updatedAt: Type.String({ format: 'date-time' })
   },
   { $id: 'IsTyping', additionalProperties: false }
 )
@@ -24,9 +26,13 @@ export const isTypingResolver = resolve<IsTyping, HookContext<IsTypingService>>(
 export const isTypingExternalResolver = resolve<IsTyping, HookContext<IsTypingService>>({})
 
 // Schema for creating new entries
-export const isTypingDataSchema = Type.Pick(isTypingSchema, ['typer', 'conversation'], {
-  $id: 'IsTypingData'
-})
+export const isTypingDataSchema = Type.Pick(
+  isTypingSchema,
+  ['typer', 'conversation', 'createdAt', 'updatedAt'],
+  {
+    $id: 'IsTypingData'
+  }
+)
 export type IsTypingData = Static<typeof isTypingDataSchema>
 export const isTypingDataValidator = getValidator(isTypingDataSchema, dataValidator)
 export const isTypingDataResolver = resolve<IsTyping, HookContext<IsTypingService>>({})
@@ -40,7 +46,13 @@ export const isTypingPatchValidator = getValidator(isTypingPatchSchema, dataVali
 export const isTypingPatchResolver = resolve<IsTyping, HookContext<IsTypingService>>({})
 
 // Schema for allowed query properties
-export const isTypingQueryProperties = Type.Pick(isTypingSchema, ['_id', 'typer', 'conversation'])
+export const isTypingQueryProperties = Type.Pick(isTypingSchema, [
+  '_id',
+  'typer',
+  'conversation',
+  'createdAt',
+  'updatedAt'
+])
 export const isTypingQuerySchema = Type.Intersect(
   [
     querySyntax(isTypingQueryProperties),

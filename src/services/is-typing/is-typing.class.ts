@@ -18,7 +18,11 @@ export class IsTypingService<ServiceParams extends Params = IsTypingParams> exte
   IsTypingPatch
 > {
   async create(body: any): Promise<any> {
-    return body
+    const creating = await super.create(body)
+    setTimeout(async () => {
+      await super._remove(creating._id.toString())
+    }, 10000)
+    return creating
   }
 }
 
