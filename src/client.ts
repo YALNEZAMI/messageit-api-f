@@ -4,6 +4,14 @@ import type { TransportConnection, Application } from '@feathersjs/feathers'
 import authenticationClient from '@feathersjs/authentication-client'
 import type { AuthenticationClientOptions } from '@feathersjs/authentication-client'
 
+import { isTypingClient } from './services/is-typing/is-typing.shared'
+export type {
+  IsTyping,
+  IsTypingData,
+  IsTypingQuery,
+  IsTypingPatch
+} from './services/is-typing/is-typing.shared'
+
 import { messageVisibilityClient } from './services/message-visibility/message-visibility.shared'
 export type {
   MessageVisibility,
@@ -87,5 +95,6 @@ export const createClient = <Configuration = any,>(
   client.configure(membersClient)
   client.configure(messagesClient)
   client.configure(messageVisibilityClient)
+  client.configure(isTypingClient)
   return client
 }
