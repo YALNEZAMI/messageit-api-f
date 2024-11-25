@@ -67,6 +67,20 @@ export class ConversationsService<ServiceParams extends Params = ConversationsPa
         }
       })
     }
+    //sort with last message creation date
+    convs = convs.sort((conv1, conv2) => {
+      // Get the timestamp of the last message or the conversation creation date as fallback
+      const date1 = conv1.lastMessage?.createdAt
+        ? new Date(conv1.lastMessage.createdAt).getTime()
+        : new Date(conv1.createdAt).getTime()
+      const date2 = conv2.lastMessage?.createdAt
+        ? new Date(conv2.lastMessage.createdAt).getTime()
+        : new Date(conv2.createdAt).getTime()
+
+      // Sort in descending order (newest to oldest)
+      return date2 - date1
+    })
+
     return convs // Return the result with populated members
   }
   async get(id: any, params: any): Promise<any> {
