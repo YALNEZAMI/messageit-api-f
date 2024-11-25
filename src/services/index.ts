@@ -1,3 +1,4 @@
+import { messageRecieving } from './message-recieving/message-recieving'
 import { isTyping } from './is-typing/is-typing'
 import { messageVisibility } from './message-visibility/message-visibility'
 import { messages } from './messages/messages'
@@ -13,6 +14,7 @@ import { myUsers } from './my-users/my-users'
 import type { Application } from '../declarations'
 
 export const services = (app: Application) => {
+  app.configure(messageRecieving)
   app.configure(isTyping)
   app.configure(messageVisibility)
   app.configure(messages)

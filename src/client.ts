@@ -4,6 +4,14 @@ import type { TransportConnection, Application } from '@feathersjs/feathers'
 import authenticationClient from '@feathersjs/authentication-client'
 import type { AuthenticationClientOptions } from '@feathersjs/authentication-client'
 
+import { messageRecievingClient } from './services/message-recieving/message-recieving.shared'
+export type {
+  MessageRecieving,
+  MessageRecievingData,
+  MessageRecievingQuery,
+  MessageRecievingPatch
+} from './services/message-recieving/message-recieving.shared'
+
 import { isTypingClient } from './services/is-typing/is-typing.shared'
 export type {
   IsTyping,
@@ -96,5 +104,6 @@ export const createClient = <Configuration = any,>(
   client.configure(messagesClient)
   client.configure(messageVisibilityClient)
   client.configure(isTypingClient)
+  client.configure(messageRecievingClient)
   return client
 }
