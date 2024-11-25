@@ -62,6 +62,13 @@ export const channels = (app: Application) => {
     for (const fr of friends) {
       res.push(app.channel('userId=' + fr._id.toString()))
     }
+    //and conversations memebers
+    const convs = await app.service('conversations').find(hook.params)
+    for (const conv of convs) {
+      for (const mem of conv.members) {
+        res.push(app.channel('userId=' + mem._id.toString()))
+      }
+    }
     return res
   })
   app.service('messages').publish(async (message: any, hook: HookContext) => {
@@ -75,6 +82,14 @@ export const channels = (app: Application) => {
   app.service('is-typing').publish(async (typing: any, hook: HookContext) => {
     const res = []
     const conv = await app.service('conversations').get(typing.conversation, hook.params)
+    for (const member of conv.members) {
+      res.push(app.channel('userId=' + member._id.toString()))
+    }
+    return res
+  })
+  app.service('message-recieving').publish(async (recieving: any, hook: HookContext) => {
+    const res = []
+    const conv = await app.service('conversations').get(recieving.conversation, hook.params)
     for (const member of conv.members) {
       res.push(app.channel('userId=' + member._id.toString()))
     }
