@@ -12,7 +12,10 @@ import type { MessageRecievingService } from './message-recieving.class'
 export const messageRecievingSchema = Type.Object(
   {
     _id: ObjectIdSchema(),
-    text: Type.String()
+    message: Type.String(),
+    recipient: Type.String(),
+    conversation: Type.String(),
+    createdAt: Type.Optional(Type.String())
   },
   { $id: 'MessageRecieving', additionalProperties: false }
 )
@@ -26,9 +29,13 @@ export const messageRecievingExternalResolver = resolve<
 >({})
 
 // Schema for creating new entries
-export const messageRecievingDataSchema = Type.Pick(messageRecievingSchema, ['text'], {
-  $id: 'MessageRecievingData'
-})
+export const messageRecievingDataSchema = Type.Pick(
+  messageRecievingSchema,
+  ['recipient', 'conversation', 'message'],
+  {
+    $id: 'MessageRecievingData'
+  }
+)
 export type MessageRecievingData = Static<typeof messageRecievingDataSchema>
 export const messageRecievingDataValidator = getValidator(messageRecievingDataSchema, dataValidator)
 export const messageRecievingDataResolver = resolve<MessageRecieving, HookContext<MessageRecievingService>>(
@@ -46,7 +53,12 @@ export const messageRecievingPatchResolver = resolve<MessageRecieving, HookConte
 )
 
 // Schema for allowed query properties
-export const messageRecievingQueryProperties = Type.Pick(messageRecievingSchema, ['_id', 'text'])
+export const messageRecievingQueryProperties = Type.Pick(messageRecievingSchema, [
+  '_id',
+  'recipient',
+  'conversation',
+  'message'
+])
 export const messageRecievingQuerySchema = Type.Intersect(
   [
     querySyntax(messageRecievingQueryProperties),
