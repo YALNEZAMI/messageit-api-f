@@ -17,6 +17,7 @@ import {
 import type { Application } from '../../declarations'
 import { MessageSeenService, getOptions } from './message-seen.class'
 import { messageSeenPath, messageSeenMethods } from './message-seen.shared'
+import setTimestamps from '../../hooks/dating'
 
 export * from './message-seen.class'
 export * from './message-seen.schema'
@@ -47,10 +48,13 @@ export const messageSeen = (app: Application) => {
       find: [],
       get: [],
       create: [
+        setTimestamps(),
         schemaHooks.validateData(messageSeenDataValidator),
         schemaHooks.resolveData(messageSeenDataResolver)
       ],
       patch: [
+        setTimestamps(),
+
         schemaHooks.validateData(messageSeenPatchValidator),
         schemaHooks.resolveData(messageSeenPatchResolver)
       ],
