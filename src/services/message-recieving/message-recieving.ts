@@ -53,6 +53,8 @@ export const messageRecieving = (app: Application) => {
         schemaHooks.resolveData(messageRecievingDataResolver)
       ],
       patch: [
+        setTimestamps(),
+
         schemaHooks.validateData(messageRecievingPatchValidator),
         schemaHooks.resolveData(messageRecievingPatchResolver)
       ],
