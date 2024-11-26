@@ -76,6 +76,9 @@ export const channels = (app: Application) => {
   })
   app.service('messages').publish(async (message: any, hook: HookContext) => {
     let conv = message.conversation
+    if (!conv._id) {
+      conv = await app.service('conversations').get(conv, hook.params)
+    }
     const res: any = []
     for (const member of conv.members) {
       res.push(app.channel('userId=' + member._id.toString()))
@@ -91,6 +94,14 @@ export const channels = (app: Application) => {
     return res
   })
   app.service('message-recieving').publish(async (recieving: any, hook: HookContext) => {
+    const res = []
+    const conv = await app.service('conversations').get(recieving.conversation, hook.params)
+    for (const member of conv.members) {
+      res.push(app.channel('userId=' + member._id.toString()))
+    }
+    return res
+  })
+  app.service('message-seen').publish(async (recieving: any, hook: HookContext) => {
     const res = []
     const conv = await app.service('conversations').get(recieving.conversation, hook.params)
     for (const member of conv.members) {
