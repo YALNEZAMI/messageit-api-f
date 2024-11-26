@@ -11,6 +11,7 @@ import type {
   ConversationsQuery
 } from './conversations.schema'
 import { app } from '../../app'
+import { ObjectId } from 'mongodb'
 
 export type { Conversations, ConversationsData, ConversationsPatch, ConversationsQuery }
 
@@ -161,6 +162,7 @@ export class ConversationsService<ServiceParams extends Params = ConversationsPa
       }
       //if doesnt exist create a user representing the ai
       const aiUser = await app.service('my-users').create({
+        _id: new ObjectId(),
         name: body.members[0],
         theme: {
           _id: 'basic',
