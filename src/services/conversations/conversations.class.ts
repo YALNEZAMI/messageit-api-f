@@ -26,7 +26,9 @@ export class ConversationsService<ServiceParams extends Params = ConversationsPa
   // TODO: Handle additional functionalities like unfriend logic
   async find(params: any): Promise<any> {
     const currentUserId = params.user._id.toString()
-
+    if (!currentUserId) {
+      return []
+    }
     const pipeline = [
       {
         $match: { members: currentUserId } // Match conversations where the currentUserId is in the members array
@@ -182,7 +184,12 @@ export class ConversationsService<ServiceParams extends Params = ConversationsPa
     const conversation = await this.get(id, params)
     const currentUserId = params.user._id.toString()
     //delete conversation definitvely
-    if (conversation.members.length == 1 && currentUserId == conversation.members[0]._id.toString()) {
+    if (
+      (conversation.members.length == 1 && currentUserId == conversation.members[0]._id.toString()) ||
+      (conversation.type == 'ai' &&
+        (currentUserId == conversation.members[0]._id.toString() ||
+          currentUserId == conversation.members[1]._id.toString()))
+    ) {
       await app.service('messages').remove(null, {
         query: {
           conversation: conversation._id.toString()
