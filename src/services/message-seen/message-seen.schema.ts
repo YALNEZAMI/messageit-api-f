@@ -12,7 +12,11 @@ import type { MessageSeenService } from './message-seen.class'
 export const messageSeenSchema = Type.Object(
   {
     _id: ObjectIdSchema(),
-    text: Type.String()
+    message: Type.String(),
+    viewer: Type.String(),
+    conversation: Type.String(),
+    createdAt: Type.Optional(Type.String()),
+    updatedAt: Type.Optional(Type.String())
   },
   { $id: 'MessageSeen', additionalProperties: false }
 )
@@ -23,9 +27,14 @@ export const messageSeenResolver = resolve<MessageSeen, HookContext<MessageSeenS
 export const messageSeenExternalResolver = resolve<MessageSeen, HookContext<MessageSeenService>>({})
 
 // Schema for creating new entries
-export const messageSeenDataSchema = Type.Pick(messageSeenSchema, ['text'], {
-  $id: 'MessageSeenData'
-})
+export const messageSeenDataSchema = Type.Pick(
+  messageSeenSchema,
+  ['viewer', 'conversation', 'message', 'createdAt', 'updatedAt'],
+
+  {
+    $id: 'MessageSeenData'
+  }
+)
 export type MessageSeenData = Static<typeof messageSeenDataSchema>
 export const messageSeenDataValidator = getValidator(messageSeenDataSchema, dataValidator)
 export const messageSeenDataResolver = resolve<MessageSeen, HookContext<MessageSeenService>>({})
@@ -39,7 +48,14 @@ export const messageSeenPatchValidator = getValidator(messageSeenPatchSchema, da
 export const messageSeenPatchResolver = resolve<MessageSeen, HookContext<MessageSeenService>>({})
 
 // Schema for allowed query properties
-export const messageSeenQueryProperties = Type.Pick(messageSeenSchema, ['_id', 'text'])
+export const messageSeenQueryProperties = Type.Pick(messageSeenSchema, [
+  '_id',
+  'viewer',
+  'conversation',
+  'message',
+  'createdAt',
+  'updatedAt'
+])
 export const messageSeenQuerySchema = Type.Intersect(
   [
     querySyntax(messageSeenQueryProperties),
