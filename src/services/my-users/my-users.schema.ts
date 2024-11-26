@@ -45,7 +45,7 @@ export const myUsersExternalResolver = resolve<MyUsers, HookContext<MyUsersServi
 // Schema for creating new entries
 export const myUsersDataSchema = Type.Pick(
   myUsersSchema,
-  ['createdAt', 'updatedAt', 'theme', 'onLine', 'lastConnection', 'email', 'name', 'image', 'aiUser'],
+  ['_id', 'createdAt', 'updatedAt', 'theme', 'onLine', 'lastConnection', 'email', 'name', 'image', 'aiUser'],
   {
     $id: 'MyUsersData'
   }
