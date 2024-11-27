@@ -106,7 +106,6 @@ export class MessagesService<ServiceParams extends Params = MessagesParams> exte
 
     //handl ai conversations
     if (conversation.type == 'ai') {
-      //TODO mesuse gemini api
       // const response = await ollama.chat({
       //   model: 'llama3:latest',
       //   messages: [{ role: 'user', content: body.text }]
@@ -207,16 +206,22 @@ export class MessagesService<ServiceParams extends Params = MessagesParams> exte
 
     if (id) {
       //delete message case
+      //delete message visibility
       await app.service('message-visibility').remove(null, {
         query: {
           messageId: id.toString()
         }
       })
-    } else if (convId) {
-      //delete conversation case
-      await app.service('message-visibility').remove(null, {
+      //delete message recievings
+      await app.service('message-recieving').remove(null, {
         query: {
-          conversationId: convId
+          message: id.toString()
+        }
+      })
+      //delete message seeings
+      await app.service('message-seen').remove(null, {
+        query: {
+          message: id.toString()
         }
       })
     }

@@ -28,6 +28,7 @@ export class MessageRecievingService<
 export const getOptions = (app: Application): MongoDBAdapterOptions => {
   return {
     paginate: app.get('paginate'),
-    Model: app.get('mongodbClient').then((db) => db.collection('message-recieving'))
+    Model: app.get('mongodbClient').then((db) => db.collection('message-recieving')),
+    multi: ['remove']
   }
 }

@@ -186,6 +186,7 @@ export class ConversationsService<ServiceParams extends Params = ConversationsPa
     const conversation = await this.get(id, params)
     const currentUserId = params.user._id.toString()
     //delete conversation definitvely
+    //check rights and operation nature
     if (
       (conversation.members.length == 1 && currentUserId == conversation.members[0]._id.toString()) ||
       (conversation.type == 'ai' &&
@@ -197,8 +198,27 @@ export class ConversationsService<ServiceParams extends Params = ConversationsPa
           conversation: conversation._id.toString()
         }
       })
+      //delete conversation case
+      await app.service('message-visibility').remove(null, {
+        query: {
+          conversationId: id.toString()
+        }
+      })
+      //delete message recievings
+      await app.service('message-recieving').remove(null, {
+        query: {
+          conversation: id.toString()
+        }
+      })
+      //delete message seeings
+      await app.service('message-seen').remove(null, {
+        query: {
+          conversation: id.toString()
+        }
+      })
       await super.remove(id)
     } else {
+      //leaving conversation
       await app.service('message-visibility').remove(null, {
         query: {
           conversationId: conversation._id.toString(),
