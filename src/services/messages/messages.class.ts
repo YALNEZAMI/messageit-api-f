@@ -90,13 +90,10 @@ export class MessagesService<ServiceParams extends Params = MessagesParams> exte
       return new ObjectId(v.messageId)
     })
     params.query = {
-      _id: { $in: visibileMessagesIds }
-      // ...params.query
+      _id: { $in: visibileMessagesIds },
+      ...params.query
     }
-    const log = await super.find({
-      ...params,
-      query: {}
-    })
+
     const messages = await super.find(params)
     //populate sender object
 
@@ -118,7 +115,8 @@ export class MessagesService<ServiceParams extends Params = MessagesParams> exte
       //   model: 'llama3:latest',
       //   messages: [{ role: 'user', content: body.text }]
       // })
-      const aiResponse = await this.geminiRequest(body.text)
+      const req = await this.getContext(body, params)
+      const aiResponse = await this.geminiRequest(req)
       //create user message
       userMessage = await super._create(body, params)
       userMessage.sender = await app.service('my-users').get(body.sender, {
@@ -160,7 +158,27 @@ export class MessagesService<ServiceParams extends Params = MessagesParams> exte
       return userMessage
     }
   }
+  async getContext(body: any, params: any): Promise<string> {
+    const messages = await super._find({
+      ...params,
+      query: {
+        sender: body.sender,
+        conversation: body.conversation,
+        $limit: 20
+      }
+    })
+    let res = 'Here is the context of the user conversation. <<\n'
+    for (const msg of messages.data) {
+      res += msg.text + '\n'
+      res += 'at ' + msg.createdAt + '\n'
+    }
+    res += ' And the question is:' + body.text + '|n'
+    res +=
+      'if a link between the context and the question is revelent, answer based on context, answer directly otherwise'
 
+    console.log('context', res)
+    return res
+  }
   async geminiRequest(promt: string) {
     // Your API key
 
