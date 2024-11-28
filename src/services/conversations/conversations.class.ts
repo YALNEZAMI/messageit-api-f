@@ -26,10 +26,11 @@ export class ConversationsService<ServiceParams extends Params = ConversationsPa
 > {
   // TODO: Handle additional functionalities like unfriend logic
   async find(params: any): Promise<any> {
-    const currentUserId = params.user._id.toString()
-    if (!currentUserId) {
+    if (!params.user) {
       return []
     }
+    const currentUserId = params.user._id.toString()
+
     const pipeline = [
       {
         $match: { members: currentUserId } // Match conversations where the currentUserId is in the members array
@@ -188,10 +189,10 @@ export class ConversationsService<ServiceParams extends Params = ConversationsPa
     //delete conversation definitvely
     //check rights and operation nature
     if (
-      (conversation.members.length == 1 && currentUserId == conversation.members[0]._id.toString()) ||
+      (conversation.members.length == 1 && currentUserId == conversation.members[0]._id.toString()) || //last member
       (conversation.type == 'ai' &&
         (currentUserId == conversation.members[0]._id.toString() ||
-          currentUserId == conversation.members[1]._id.toString()))
+          currentUserId == conversation.members[1]._id.toString())) //ai conv
     ) {
       await app.service('messages').remove(null, {
         query: {
@@ -218,7 +219,32 @@ export class ConversationsService<ServiceParams extends Params = ConversationsPa
       })
       await super.remove(id)
     } else {
-      //leaving conversation
+      //leaving
+      const leaver = await app.service('my-users').get(currentUserId, params)
+      if (leaver) {
+        const notif = await app.service('messages')._create(
+          {
+            conversation: id.toString(),
+            text: `${leaver.name} a quitté la conversation.`,
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+            type: 'notification'
+          },
+          {
+            ...params,
+            query: {}
+          }
+        )
+        const conv = await this.get(id, params)
+        for (const member of conv.members) {
+          await app.service('message-visibility').create({
+            userId: member._id.toString(),
+            messageId: notif._id.toString(),
+            conversationId: notif.conversation
+          })
+        }
+      }
+
       await app.service('message-visibility').remove(null, {
         query: {
           conversationId: conversation._id.toString(),
