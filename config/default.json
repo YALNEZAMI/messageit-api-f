@@ -10,7 +10,7 @@
     "default": 20,
     "max": 50
   },
-  "mongodb": "mongodb://localhost:27017",
+  "mongodb": "mongodb://localhost:27017/message-it-api",
   "authentication": {
     "entity": "user",
     "service": "users",
