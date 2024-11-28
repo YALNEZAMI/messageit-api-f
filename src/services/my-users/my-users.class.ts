@@ -59,11 +59,19 @@ export class MyUsersService<ServiceParams extends Params = MyUsersParams> extend
   }
 
   async get(id: any, params: any): Promise<any> {
+    if (!params.user && !id) {
+      return {
+        _id: 0,
+        name: 'unknown'
+      }
+    }
     if (!params.user) {
       return await super._get(id, params)
     }
     const currentUserId = params.user._id.toString()
-
+    if (!id) {
+      return await super._get(currentUserId, params)
+    }
     if (id == currentUserId) {
       return await super._get(id, params)
     }
