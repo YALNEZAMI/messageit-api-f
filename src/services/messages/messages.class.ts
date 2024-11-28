@@ -40,6 +40,10 @@ export class MessagesService<ServiceParams extends Params = MessagesParams> exte
   static async populateMessages(messages: any[], params: any) {
     const res = []
     for (const message of messages) {
+      if (message.type == 'notification') {
+        res.push(message)
+        continue
+      }
       //set refered message if exist
       if (message.referedMessage && message.referedMessage != '') {
         message.referedMessage = await app.service('messages').get(message.referedMessage)
@@ -85,13 +89,17 @@ export class MessagesService<ServiceParams extends Params = MessagesParams> exte
     const visibileMessagesIds = visibileMessages.map((v: any) => {
       return new ObjectId(v.messageId)
     })
-
     params.query = {
-      _id: { $in: visibileMessagesIds },
-      ...params.query
+      _id: { $in: visibileMessagesIds }
+      // ...params.query
     }
+    const log = await super.find({
+      ...params,
+      query: {}
+    })
     const messages = await super.find(params)
     //populate sender object
+
     messages.data = await MessagesService.populateMessages(messages.data, params)
     return messages
   }
