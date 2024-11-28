@@ -59,7 +59,8 @@ export const messageRecievingQueryProperties = Type.Pick(messageRecievingSchema,
   'recipient',
   'conversation',
   'message',
-  'createdAt'
+  'createdAt',
+  'updatedAt'
 ])
 export const messageRecievingQuerySchema = Type.Intersect(
   [
