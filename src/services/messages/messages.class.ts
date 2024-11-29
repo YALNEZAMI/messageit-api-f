@@ -2,7 +2,6 @@
 import type { Params } from '@feathersjs/feathers'
 import { MongoDBService } from '@feathersjs/mongodb'
 import type { MongoDBAdapterParams, MongoDBAdapterOptions } from '@feathersjs/mongodb'
-import ollama from 'ollama'
 import axios from 'axios'
 
 import type { Application } from '../../declarations'
@@ -13,6 +12,7 @@ import { ObjectId } from 'mongodb'
 export type { Messages, MessagesData, MessagesPatch, MessagesQuery }
 
 export interface MessagesParams extends MongoDBAdapterParams<MessagesQuery> {}
+type ContentDto = { role: string; parts: { text: string } }
 
 // By default calls the standard MongoDB adapter service methods but can be customized with your own functionality.
 export class MessagesService<ServiceParams extends Params = MessagesParams> extends MongoDBService<
@@ -100,11 +100,9 @@ export class MessagesService<ServiceParams extends Params = MessagesParams> exte
     messages.data = await MessagesService.populateMessages(messages.data, params)
     return messages
   }
-  async create(body: any, params: any): Promise<any> {
-    await this.geminiRequest('capital of france')
-
+  async create(messageBody: any, params: any): Promise<any> {
     let userMessage: any
-    const conversation = await app.service('conversations').get(body.conversation, {
+    const conversation = await app.service('conversations').get(messageBody.conversation, {
       ...params,
       query: {}
     })
@@ -115,11 +113,10 @@ export class MessagesService<ServiceParams extends Params = MessagesParams> exte
       //   model: 'llama3:latest',
       //   messages: [{ role: 'user', content: body.text }]
       // })
-      const req = await this.getContext(body, params)
-      const aiResponse = await this.geminiRequest(req)
+      const aiResponse = await this.geminiRequest(messageBody, params)
       //create user message
-      userMessage = await super._create(body, params)
-      userMessage.sender = await app.service('my-users').get(body.sender, {
+      userMessage = await super._create(messageBody, params)
+      userMessage.sender = await app.service('my-users').get(messageBody.sender, {
         ...params,
         query: {}
       })
@@ -127,13 +124,13 @@ export class MessagesService<ServiceParams extends Params = MessagesParams> exte
       let aiUser: any = await app.service('my-users')._find({
         ...params,
         query: {
-          name: body.sender
+          name: messageBody.sender
         }
       })
       aiUser = aiUser.data[0]._id
       const aiMessage = await super.create(
         {
-          ...body,
+          ...messageBody,
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString(),
           text: aiResponse,
@@ -150,7 +147,7 @@ export class MessagesService<ServiceParams extends Params = MessagesParams> exte
         aiMessage
       }
     } else {
-      userMessage = await super._create(body, params)
+      userMessage = await super._create(messageBody, params)
       //set visibility
       await this.setVisibility(userMessage, conversation)
       const populating = await MessagesService.populateMessages([userMessage], params)
@@ -158,28 +155,36 @@ export class MessagesService<ServiceParams extends Params = MessagesParams> exte
       return userMessage
     }
   }
-  async getContext(body: any, params: any): Promise<string> {
+
+  async getGeminiContents(messageBody: any, params: any): Promise<ContentDto[]> {
     const messages = await super._find({
       ...params,
       query: {
-        sender: body.sender,
-        conversation: body.conversation,
+        // sender: { $ne: messageBody.sender },
+        conversation: messageBody.conversation,
+        $sort: { createdAt: 1 },
         $limit: 20
       }
     })
-    let res = 'Here is the context of the user conversation. <<\n'
-    for (const msg of messages.data) {
-      res += msg.text + '\n'
-      res += 'at ' + msg.createdAt + '\n'
-    }
-    res += ' And the question is:' + body.text + '|n'
-    res +=
-      'if a link between the context and the question is revelent, answer based on context, answer directly otherwise'
+    let res = []
 
-    console.log('context', res)
+    for (const msg of messages.data.reverse()) {
+      res.push({
+        role: msg.sender == messageBody.sender ? 'user' : 'model',
+        parts: {
+          text: msg.text as string
+        }
+      })
+    }
+    res.push({
+      role: 'user',
+      parts: {
+        text: messageBody.text as string
+      }
+    })
     return res
   }
-  async geminiRequest(promt: string) {
+  async geminiRequest(messageBody: any, params: any) {
     // Your API key
 
     const GEMINI_KEY = process.env.GEMINI_KEY
@@ -190,15 +195,7 @@ export class MessagesService<ServiceParams extends Params = MessagesParams> exte
     try {
       // Request payload
       const data = {
-        contents: [
-          {
-            parts: [
-              {
-                text: promt
-              }
-            ]
-          }
-        ]
+        contents: await this.getGeminiContents(messageBody, params)
       }
 
       // Send POST request
@@ -215,6 +212,7 @@ export class MessagesService<ServiceParams extends Params = MessagesParams> exte
       console.error('Error:', error.response ? error.response.data : error.message)
     }
   }
+
   async setVisibility(message: any, conversation: any) {
     //set visibility
     for (const member of conversation.members) {
