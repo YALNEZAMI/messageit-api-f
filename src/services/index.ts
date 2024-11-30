@@ -1,3 +1,4 @@
+import { emojis } from './emojis/emojis'
 import { messageSeen } from './message-seen/message-seen'
 import { messageRecieving } from './message-recieving/message-recieving'
 import { isTyping } from './is-typing/is-typing'
@@ -15,6 +16,7 @@ import { myUsers } from './my-users/my-users'
 import type { Application } from '../declarations'
 
 export const services = (app: Application) => {
+  app.configure(emojis)
   app.configure(messageSeen)
   app.configure(messageRecieving)
   app.configure(isTyping)

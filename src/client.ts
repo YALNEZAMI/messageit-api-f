@@ -4,6 +4,9 @@ import type { TransportConnection, Application } from '@feathersjs/feathers'
 import authenticationClient from '@feathersjs/authentication-client'
 import type { AuthenticationClientOptions } from '@feathersjs/authentication-client'
 
+import { emojisClient } from './services/emojis/emojis.shared'
+export type { Emojis, EmojisData, EmojisQuery, EmojisPatch } from './services/emojis/emojis.shared'
+
 import { messageSeenClient } from './services/message-seen/message-seen.shared'
 export type {
   MessageSeen,
@@ -114,5 +117,6 @@ export const createClient = <Configuration = any,>(
   client.configure(isTypingClient)
   client.configure(messageRecievingClient)
   client.configure(messageSeenClient)
+  client.configure(emojisClient)
   return client
 }
