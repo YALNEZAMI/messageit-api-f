@@ -16,7 +16,30 @@ export class EmojisService<ServiceParams extends Params = EmojisParams> extends 
   EmojisData,
   EmojisParams,
   EmojisPatch
-> {}
+> {
+  async create(body: any, params: any): Promise<any> {
+    const availableEmojis = ['👍', '❤️', '😊', '😔', '😡']
+    if (!availableEmojis.includes(body.emoji)) {
+      return {
+        status: 500,
+        message: 'Not allowed emoji'
+      }
+    } else {
+      return await super._create(body, params)
+    }
+  }
+  async patch(_id: any, body: any, params: any): Promise<any> {
+    const availableEmojis = ['👍', '❤️', '😊', '😔', '😡']
+    if (!availableEmojis.includes(body.emoji)) {
+      return {
+        status: 500,
+        message: 'Not allowed emoji'
+      }
+    } else {
+      return await super._patch(_id, body, params)
+    }
+  }
+}
 
 export const getOptions = (app: Application): MongoDBAdapterOptions => {
   return {
