@@ -18,7 +18,8 @@ export const messagesSchema = Type.Object(
     type: Type.String(), //message|notification
     text: Type.String(),
     sender: Type.Optional(Type.Any()),
-    conversation: Type.Any()
+    conversation: Type.Any(),
+    transfered: Type.Optional(Type.Boolean())
   },
   { $id: 'Messages', additionalProperties: false }
 )
@@ -31,7 +32,7 @@ export const messagesExternalResolver = resolve<Messages, HookContext<MessagesSe
 // Schema for creating new entries
 export const messagesDataSchema = Type.Pick(
   messagesSchema,
-  ['text', 'sender', 'conversation', 'createdAt', 'updatedAt', 'referedMessage', 'type'],
+  ['text', 'sender', 'conversation', 'createdAt', 'updatedAt', 'referedMessage', 'type', 'transfered'],
   {
     $id: 'MessagesData'
   }
