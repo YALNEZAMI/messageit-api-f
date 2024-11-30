@@ -109,4 +109,14 @@ export const channels = (app: Application) => {
     }
     return res
   })
+  app.service('emojis').publish(async (emoji: any, hook: HookContext) => {
+    let message = await app.service('messages').get(emoji.message, hook.params)
+    const conv = await app.service('conversations').get(message.conversation, hook.params)
+
+    const res = []
+    for (const member of conv.members) {
+      res.push(app.channel('userId=' + member._id.toString()))
+    }
+    return res
+  })
 }
