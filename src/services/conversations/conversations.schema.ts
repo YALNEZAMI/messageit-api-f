@@ -73,10 +73,10 @@ export const conversationsQuerySchema = Type.Intersect(
         $match: Type.Optional(Type.Object({ members: Type.String() })),
         key: Type.Optional(Type.String())
       },
-      { additionalProperties: false }
+      { additionalProperties: true }
     )
   ],
-  { additionalProperties: false }
+  { additionalProperties: true }
 )
 export type ConversationsQuery = Static<typeof conversationsQuerySchema>
 export const conversationsQueryValidator = getValidator(conversationsQuerySchema, queryValidator)
