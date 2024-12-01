@@ -58,9 +58,12 @@
     "@feathersjs/socketio": "^5.0.31",
     "@feathersjs/transport-commons": "^5.0.31",
     "@feathersjs/typebox": "^5.0.31",
+    "@types/multer": "^1.4.12",
     "dotenv": "^16.4.5",
+    "express": "^4.21.1",
     "messageit-api-f": "file:",
     "mongodb": "^6.10.0",
+    "multer": "^1.4.5-lts.1",
     "ollama": "^0.5.10",
     "winston": "^3.16.0"
   },
