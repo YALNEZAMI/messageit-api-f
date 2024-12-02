@@ -16,11 +16,40 @@ export class GroupRightsService<ServiceParams extends Params = GroupRightsParams
   GroupRightsData,
   GroupRightsParams,
   GroupRightsPatch
-> {}
+> {
+  async patch(id: any, data: any, params?: any): Promise<any> {
+    const currentUserId = params.user._id.toString()
+    const rights = await super._find({
+      query: {
+        conversation: params.query.conversation
+      }
+    })
+    const right = rights.data[0]
+    //admin operation
+    const admin = params.query.admin
+    if (admin && right.chef == currentUserId) {
+      if (right.admins.includes(admin)) {
+        //remove admin
+        right.admins = right.admins.filter((adminFilter) => {
+          return admin != adminFilter
+        })
+      } else {
+        right.admins.push(admin)
+      }
+    }
+    return await super._patch(id, right, {
+      ...params,
+      query: {
+        conversation: params.query.conversation
+      }
+    })
+  }
+}
 
 export const getOptions = (app: Application): MongoDBAdapterOptions => {
   return {
     paginate: app.get('paginate'),
-    Model: app.get('mongodbClient').then((db) => db.collection('group-rights'))
+    Model: app.get('mongodbClient').then((db) => db.collection('group-rights')),
+    multi: ['patch']
   }
 }
