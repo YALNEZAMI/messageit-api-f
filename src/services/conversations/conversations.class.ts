@@ -24,7 +24,6 @@ export class ConversationsService<ServiceParams extends Params = ConversationsPa
   ConversationsParams,
   ConversationsPatch
 > {
-  // TODO: Handle additional functionalities like unfriend logic
   async find(params: any): Promise<any> {
     if (!params.user) {
       return []
