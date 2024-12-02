@@ -12,7 +12,9 @@ import type { GroupRightsService } from './group-rights.class'
 export const groupRightsSchema = Type.Object(
   {
     _id: ObjectIdSchema(),
-    text: Type.String()
+    conversation: Type.String(),
+    chef: Type.String(),
+    admins: Type.Array(Type.String())
   },
   { $id: 'GroupRights', additionalProperties: false }
 )
@@ -23,7 +25,7 @@ export const groupRightsResolver = resolve<GroupRights, HookContext<GroupRightsS
 export const groupRightsExternalResolver = resolve<GroupRights, HookContext<GroupRightsService>>({})
 
 // Schema for creating new entries
-export const groupRightsDataSchema = Type.Pick(groupRightsSchema, ['text'], {
+export const groupRightsDataSchema = Type.Pick(groupRightsSchema, ['conversation', 'chef', 'admins'], {
   $id: 'GroupRightsData'
 })
 export type GroupRightsData = Static<typeof groupRightsDataSchema>
@@ -39,12 +41,22 @@ export const groupRightsPatchValidator = getValidator(groupRightsPatchSchema, da
 export const groupRightsPatchResolver = resolve<GroupRights, HookContext<GroupRightsService>>({})
 
 // Schema for allowed query properties
-export const groupRightsQueryProperties = Type.Pick(groupRightsSchema, ['_id', 'text'])
+export const groupRightsQueryProperties = Type.Pick(groupRightsSchema, [
+  '_id',
+  'conversation',
+  'chef',
+  'admins'
+])
 export const groupRightsQuerySchema = Type.Intersect(
   [
     querySyntax(groupRightsQueryProperties),
     // Add additional query properties here
-    Type.Object({}, { additionalProperties: false })
+    Type.Object(
+      {
+        admin: Type.Optional(Type.String())
+      },
+      { additionalProperties: false }
+    )
   ],
   { additionalProperties: false }
 )
