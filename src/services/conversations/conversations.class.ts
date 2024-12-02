@@ -139,7 +139,7 @@ export class ConversationsService<ServiceParams extends Params = ConversationsPa
         )
       })
       convs = await this.populateConversations(convs, params)
-      if (convs.length != 0 && body.type == 'private') {
+      if (convs.length != 0) {
         return convs[0]
       }
     }
@@ -179,8 +179,19 @@ export class ConversationsService<ServiceParams extends Params = ConversationsPa
       //push it to covnersation members
       body.members.push(aiUser._id.toString())
     }
+
     //and finally create and return the new conversation
-    return await super._create(body)
+    const convResult = await super._create(body)
+    //create Group rights
+    if (body.type == 'group') {
+      const rights = {
+        conversation: convResult._id.toString(),
+        admins: [],
+        chef: params.user._id.toString()
+      }
+      await app.service('group-rights').create(rights)
+    }
+    return convResult
   }
   async remove(id: any, params: any): Promise<any> {
     const conversation = await this.get(id, params)
@@ -215,6 +226,10 @@ export class ConversationsService<ServiceParams extends Params = ConversationsPa
         query: {
           conversation: id.toString()
         }
+      })
+      //delete rights
+      await app.service('group-rights').remove(null, {
+        query: { conversation: id.toString() }
       })
       await super.remove(id)
     } else {
@@ -256,7 +271,7 @@ export class ConversationsService<ServiceParams extends Params = ConversationsPa
         }
       } as any)
     }
-    return await conversation
+    return conversation
   }
 }
 
