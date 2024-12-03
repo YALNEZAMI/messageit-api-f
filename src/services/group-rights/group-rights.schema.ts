@@ -53,7 +53,8 @@ export const groupRightsQuerySchema = Type.Intersect(
     // Add additional query properties here
     Type.Object(
       {
-        admin: Type.Optional(Type.String())
+        admin: Type.Optional(Type.String()),
+        chef: Type.Optional(Type.String())
       },
       { additionalProperties: false }
     )
