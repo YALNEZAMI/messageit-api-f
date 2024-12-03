@@ -273,6 +273,54 @@ export class ConversationsService<ServiceParams extends Params = ConversationsPa
     }
     return conversation
   }
+  async patch(id: any, body: any, params: any): Promise<any> {
+    const member = params.query.member
+    const currentUserId = params.user._id.toString()
+    const conv = await super._get(id)
+
+    console.log('convReq', conv)
+    console.log('member', member ? member : undefined)
+    //group
+    if (conv.type == 'group') {
+      const rightsReq = await app.service('group-rights').find({
+        query: {
+          conversation: id
+        }
+      })
+      const rights = rightsReq.data[0]
+      console.log('rights', rights)
+      //toogle membership
+
+      if (member && (rights.chef == currentUserId || rights.admins.includes(currentUserId))) {
+        if (conv.members.includes(member)) {
+          conv.members = conv.members.filter((mem) => {
+            return mem != member
+          })
+        } else {
+          conv.members.push(member)
+        }
+        console.log('updated conv', conv)
+        console.log('id', id)
+        await super._patch(id, conv, {
+          ...params,
+          query: {}
+        })
+        return this.get(id, {
+          ...params,
+          query: {}
+        })
+      }
+    } else {
+      await super._patch(id, body, {
+        ...params,
+        query: {}
+      })
+      return this.get(id, {
+        ...params,
+        query: {}
+      })
+    }
+  }
 }
 
 export const getOptions = (app: Application): MongoDBAdapterOptions => {
