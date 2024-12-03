@@ -37,6 +37,15 @@ export class GroupRightsService<ServiceParams extends Params = GroupRightsParams
         right.admins.push(admin)
       }
     }
+    //chef operation
+    const chef = params.query.chef
+    if (chef && right.chef == currentUserId) {
+      //check if new chef is and admin
+      if (!right.admins.includes(chef)) {
+        return right
+      }
+      right.chef = chef
+    }
     return await super._patch(id, right, {
       ...params,
       query: {
@@ -50,6 +59,6 @@ export const getOptions = (app: Application): MongoDBAdapterOptions => {
   return {
     paginate: app.get('paginate'),
     Model: app.get('mongodbClient').then((db) => db.collection('group-rights')),
-    multi: ['patch']
+    multi: ['patch', 'remove']
   }
 }
