@@ -12,7 +12,7 @@ import type { ConversationsPhotosService } from './conversations-photos.class'
 export const conversationsPhotosSchema = Type.Object(
   {
     _id: ObjectIdSchema(),
-    text: Type.String()
+    file: Type.Optional(Type.Any())
   },
   { $id: 'ConversationsPhotos', additionalProperties: false }
 )
@@ -29,7 +29,7 @@ export const conversationsPhotosExternalResolver = resolve<
 >({})
 
 // Schema for creating new entries
-export const conversationsPhotosDataSchema = Type.Pick(conversationsPhotosSchema, ['text'], {
+export const conversationsPhotosDataSchema = Type.Pick(conversationsPhotosSchema, ['file'], {
   $id: 'ConversationsPhotosData'
 })
 export type ConversationsPhotosData = Static<typeof conversationsPhotosDataSchema>
@@ -51,12 +51,17 @@ export const conversationsPhotosPatchResolver = resolve<
 >({})
 
 // Schema for allowed query properties
-export const conversationsPhotosQueryProperties = Type.Pick(conversationsPhotosSchema, ['_id', 'text'])
+export const conversationsPhotosQueryProperties = Type.Pick(conversationsPhotosSchema, ['_id'])
 export const conversationsPhotosQuerySchema = Type.Intersect(
   [
     querySyntax(conversationsPhotosQueryProperties),
     // Add additional query properties here
-    Type.Object({}, { additionalProperties: false })
+    Type.Object(
+      {
+        conversationId: Type.String()
+      },
+      { additionalProperties: false }
+    )
   ],
   { additionalProperties: false }
 )
