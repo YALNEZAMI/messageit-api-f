@@ -17,6 +17,7 @@ import {
 import type { Application } from '../../declarations'
 import { ConversationsPhotosService, getOptions } from './conversations-photos.class'
 import { conversationsPhotosPath, conversationsPhotosMethods } from './conversations-photos.shared'
+import { fileHook } from './conversations-photos.hook'
 
 export * from './conversations-photos.class'
 export * from './conversations-photos.schema'
@@ -47,6 +48,7 @@ export const conversationsPhotos = (app: Application) => {
       find: [],
       get: [],
       create: [
+        fileHook(),
         schemaHooks.validateData(conversationsPhotosDataValidator),
         schemaHooks.resolveData(conversationsPhotosDataResolver)
       ],
