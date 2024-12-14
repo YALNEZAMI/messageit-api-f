@@ -4,6 +4,14 @@ import type { TransportConnection, Application } from '@feathersjs/feathers'
 import authenticationClient from '@feathersjs/authentication-client'
 import type { AuthenticationClientOptions } from '@feathersjs/authentication-client'
 
+import { conversationsPhotosClient } from './services/conversations-photos/conversations-photos.shared'
+export type {
+  ConversationsPhotos,
+  ConversationsPhotosData,
+  ConversationsPhotosQuery,
+  ConversationsPhotosPatch
+} from './services/conversations-photos/conversations-photos.shared'
+
 import { groupRightsClient } from './services/group-rights/group-rights.shared'
 export type {
   GroupRights,
@@ -136,5 +144,6 @@ export const createClient = <Configuration = any,>(
   client.configure(emojisClient)
   client.configure(usersPhotosClient)
   client.configure(groupRightsClient)
+  client.configure(conversationsPhotosClient)
   return client
 }

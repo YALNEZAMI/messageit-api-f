@@ -1,3 +1,4 @@
+import { conversationsPhotos } from './conversations-photos/conversations-photos'
 import { groupRights } from './group-rights/group-rights'
 import { usersPhotos } from './users-photos/users-photos'
 import { emojis } from './emojis/emojis'
@@ -18,6 +19,7 @@ import { myUsers } from './my-users/my-users'
 import type { Application } from '../declarations'
 
 export const services = (app: Application) => {
+  app.configure(conversationsPhotos)
   app.configure(groupRights)
   app.configure(usersPhotos)
   app.configure(emojis)
