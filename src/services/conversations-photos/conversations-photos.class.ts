@@ -10,7 +10,10 @@ import type {
   ConversationsPhotosPatch,
   ConversationsPhotosQuery
 } from './conversations-photos.schema'
-
+import { BadRequest } from '@feathersjs/errors'
+import fs from 'fs'
+import path from 'path'
+import { app } from '../../app'
 export type {
   ConversationsPhotos,
   ConversationsPhotosData,
@@ -28,7 +31,47 @@ export class ConversationsPhotosService<
   ConversationsPhotosData,
   ConversationsPhotosParams,
   ConversationsPhotosPatch
-> {}
+> {
+  async create(data: any, params?: Params): Promise<any> {
+    if (!data.file) {
+      throw new BadRequest('No file provided')
+    }
+
+    const { buffer, originalname } = data.file
+    const uploadsDir = path.join(__dirname, '..', '..', '..', 'public', 'conversationsPhotos')
+    if (!fs.existsSync(uploadsDir)) {
+      fs.mkdirSync(uploadsDir, { recursive: true })
+    }
+    let conversationId = params?.query!.conversationId
+    let extSplit = originalname.split('.')
+    const ext = extSplit[extSplit.length - 1]
+    const finalFileName = conversationId + '.' + ext
+    const filePath = path.join(uploadsDir, finalFileName)
+
+    // Write the file buffer to disk
+    fs.writeFileSync(filePath, buffer)
+    //set my-users image
+    const port = app.get('port')
+    const host = app.get('host')
+    const devMode = process.env.DEV_MODE
+    const photoUrl =
+      devMode === 'true'
+        ? `http://${host}:${port}/conversationsPhotos/${finalFileName}`
+        : `https://${host}:${port}/conversationsPhotos/${finalFileName}`
+
+    await app.service('conversations').patch(
+      conversationId,
+      {
+        image: photoUrl
+      },
+      params
+    )
+    return {
+      message: 'File uploaded successfully',
+      path: filePath
+    }
+  }
+}
 
 export const getOptions = (app: Application): MongoDBAdapterOptions => {
   return {
