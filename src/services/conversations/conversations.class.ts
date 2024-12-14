@@ -250,6 +250,7 @@ export class ConversationsService<ServiceParams extends Params = ConversationsPa
           }
         )
         const conv = await this.get(id, params)
+        //set notification visibility for current members
         for (const member of conv.members) {
           await app.service('message-visibility').create({
             userId: member._id.toString(),
@@ -258,7 +259,7 @@ export class ConversationsService<ServiceParams extends Params = ConversationsPa
           })
         }
       }
-
+      //hide messages for leaver
       await app.service('message-visibility').remove(null, {
         query: {
           conversationId: conversation._id.toString(),
