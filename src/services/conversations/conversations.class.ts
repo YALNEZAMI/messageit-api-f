@@ -233,32 +233,9 @@ export class ConversationsService<ServiceParams extends Params = ConversationsPa
       })
       await super.remove(id)
     } else {
-      //leaving
-      const leaver = await app.service('my-users').get(currentUserId, params)
-      if (leaver) {
-        const notif = await app.service('messages')._create(
-          {
-            conversation: id.toString(),
-            text: `${leaver.name} a quitté la conversation.`,
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString(),
-            type: 'notification'
-          },
-          {
-            ...params,
-            query: {}
-          }
-        )
-        const conv = await this.get(id, params)
-        //set notification visibility for current members
-        for (const member of conv.members) {
-          await app.service('message-visibility').create({
-            userId: member._id.toString(),
-            messageId: notif._id.toString(),
-            conversationId: notif.conversation
-          })
-        }
-      }
+      //create notification
+      await app.service('messages').createNotification(id, 'a quitté la conversation.', params)
+
       //hide messages for leaver
       await app.service('message-visibility').remove(null, {
         query: {
@@ -278,7 +255,13 @@ export class ConversationsService<ServiceParams extends Params = ConversationsPa
     const member = params.query.member
     const currentUserId = params.user._id.toString()
     const conv = await super._get(id)
-
+    //theme notification
+    if (body.theme && body.theme.name != conv.theme.name) {
+      //create notification
+      await app
+        .service('messages')
+        .createNotification(id, `a changé le theme de ${conv.theme.name + ' à ' + body.theme.name}.`, params)
+    }
     //group
     if (conv.type == 'group') {
       const rightsReq = await app.service('group-rights').find({
@@ -290,16 +273,34 @@ export class ConversationsService<ServiceParams extends Params = ConversationsPa
       //toogle membership
       //if no rights return
       if (rights.chef != currentUserId && rights.admins.includes(currentUserId)) {
-        return conv
+        return {
+          status: 400,
+          message: "You don't have rights to update conversation."
+        }
+      }
+      //changing name notification
+      if (body.name && body.name != conv.name) {
+        //create notification
+        await app
+          .service('messages')
+          .createNotification(id, `a changé le nom de ${conv.name + ' à ' + body.name}.`, params)
       }
       //if membership operation
       if (member) {
+        const memberObject = await app.service('my-users')._get(member)
+
         if (conv.members.includes(member)) {
+          //removing member
           conv.members = conv.members.filter((mem) => {
             return mem != member
           })
+          //create notification
+          await app.service('messages').createNotification(id, `a supprimé ${memberObject.name}.`, params)
         } else {
+          //adding member
           conv.members.push(member)
+          //create notification
+          await app.service('messages').createNotification(id, `a ajouté ${memberObject.name}.`, params)
         }
       }
       //update members
