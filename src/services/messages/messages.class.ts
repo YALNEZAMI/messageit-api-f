@@ -252,6 +252,40 @@ export class MessagesService<ServiceParams extends Params = MessagesParams> exte
 
     return await super.remove(id, params)
   }
+  async createNotification(conversationId: string, content: string, params: any) {
+    //create a notification for members
+
+    const currentUserId = params?.user._id.toString() as string
+    const updater = await app.service('my-users').get(currentUserId, { ...params, query: {} })
+
+    const notif = await app.service('messages')._create(
+      {
+        conversation: conversationId,
+        text: `${updater.name + content}`,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        type: 'notification'
+      },
+      {
+        ...params,
+        query: {}
+      }
+    )
+    const message = await this.get(notif._id.toString(), {
+      ...params,
+      query: {}
+    })
+    app.service('messages').emit('created', message)
+    const conv = await app.service('conversations').get(conversationId, params)
+    //set notification visibility for current members
+    for (const member of conv.members) {
+      await app.service('message-visibility').create({
+        userId: member._id.toString(),
+        messageId: notif._id.toString(),
+        conversationId: notif.conversation
+      })
+    }
+  }
 }
 
 export const getOptions = (app: Application): MongoDBAdapterOptions => {
