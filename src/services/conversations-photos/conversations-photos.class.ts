@@ -32,7 +32,7 @@ export class ConversationsPhotosService<
   ConversationsPhotosParams,
   ConversationsPhotosPatch
 > {
-  async create(data: any, params?: Params): Promise<any> {
+  async create(data: any, params: any): Promise<any> {
     if (!data.file) {
       throw new BadRequest('No file provided')
     }
@@ -66,6 +66,33 @@ export class ConversationsPhotosService<
       },
       params
     )
+    //create a notification for members
+
+    const currentUserId = params?.user._id.toString() as string
+    const updater = await app.service('my-users').get(currentUserId, { ...params, query: {} })
+
+    const notif = await app.service('messages')._create(
+      {
+        conversation: conversationId,
+        text: `${updater.name} a changé la photo de la conversation.`,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        type: 'notification'
+      },
+      {
+        ...params,
+        query: {}
+      }
+    )
+    const conv = await app.service('conversations').get(conversationId, params)
+    //set notification visibility for current members
+    for (const member of conv.members) {
+      await app.service('message-visibility').create({
+        userId: member._id.toString(),
+        messageId: notif._id.toString(),
+        conversationId: notif.conversation
+      })
+    }
     return {
       message: 'File uploaded successfully',
       path: filePath
