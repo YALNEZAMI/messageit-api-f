@@ -13,6 +13,7 @@ export const messageFilesSchema = Type.Object(
   {
     _id: ObjectIdSchema(),
     message: Type.String(),
+    conversation: Type.Optional(Type.String()),
     urls: Type.Optional(Type.Array(Type.String())),
     files: Type.Optional(Type.Array(Type.Any()))
   },
@@ -25,9 +26,13 @@ export const messageFilesResolver = resolve<MessageFiles, HookContext<MessageFil
 export const messageFilesExternalResolver = resolve<MessageFiles, HookContext<MessageFilesService>>({})
 
 // Schema for creating new entries
-export const messageFilesDataSchema = Type.Pick(messageFilesSchema, ['message', 'urls', 'files'], {
-  $id: 'MessageFilesData'
-})
+export const messageFilesDataSchema = Type.Pick(
+  messageFilesSchema,
+  ['message', 'conversation', 'urls', 'files'],
+  {
+    $id: 'MessageFilesData'
+  }
+)
 export type MessageFilesData = Static<typeof messageFilesDataSchema>
 export const messageFilesDataValidator = getValidator(messageFilesDataSchema, dataValidator)
 export const messageFilesDataResolver = resolve<MessageFiles, HookContext<MessageFilesService>>({})
@@ -41,14 +46,15 @@ export const messageFilesPatchValidator = getValidator(messageFilesPatchSchema, 
 export const messageFilesPatchResolver = resolve<MessageFiles, HookContext<MessageFilesService>>({})
 
 // Schema for allowed query properties
-export const messageFilesQueryProperties = Type.Pick(messageFilesSchema, ['_id', 'message'])
+export const messageFilesQueryProperties = Type.Pick(messageFilesSchema, ['_id', 'message', 'conversation'])
 export const messageFilesQuerySchema = Type.Intersect(
   [
     querySyntax(messageFilesQueryProperties),
     // Add additional query properties here
     Type.Object(
       {
-        message: Type.String()
+        conversation: Type.Optional(Type.String()),
+        message: Type.Optional(Type.String())
       },
       { additionalProperties: false }
     )

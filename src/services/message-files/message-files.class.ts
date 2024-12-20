@@ -26,7 +26,6 @@ export class MessageFilesService<ServiceParams extends Params = MessageFilesPara
   MessageFilesPatch
 > {
   async create(data: any, params: any): Promise<any> {
-    console.log('create befing')
     if (!data.files) {
       throw new BadRequest('No file provided')
     }
@@ -58,7 +57,10 @@ export class MessageFilesService<ServiceParams extends Params = MessageFilesPara
           : `https://${host}:${port}/messageFiles/${finalFileName}`
       urls.push(url)
     }
+    const messageObject = await app.service('messages')._get(message)
+    console.log('messageObject  ', messageObject)
     await this._create({
+      conversation: messageObject.conversation,
       message,
       urls
     })
