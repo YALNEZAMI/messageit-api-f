@@ -1,3 +1,4 @@
+import { messageFiles } from './message-files/message-files'
 import { conversationsPhotos } from './conversations-photos/conversations-photos'
 import { groupRights } from './group-rights/group-rights'
 import { usersPhotos } from './users-photos/users-photos'
@@ -19,6 +20,7 @@ import { myUsers } from './my-users/my-users'
 import type { Application } from '../declarations'
 
 export const services = (app: Application) => {
+  app.configure(messageFiles)
   app.configure(conversationsPhotos)
   app.configure(groupRights)
   app.configure(usersPhotos)
