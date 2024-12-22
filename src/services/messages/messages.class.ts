@@ -8,7 +8,7 @@ import type { Application } from '../../declarations'
 import type { Messages, MessagesData, MessagesPatch, MessagesQuery } from './messages.schema'
 import { app } from '../../app'
 import { ObjectId } from 'mongodb'
-
+import * as fs from 'fs'
 export type { Messages, MessagesData, MessagesPatch, MessagesQuery }
 
 export interface MessagesParams extends MongoDBAdapterParams<MessagesQuery> {}
@@ -212,7 +212,8 @@ export class MessagesService<ServiceParams extends Params = MessagesParams> exte
       console.error('Error:', error.response ? error.response.data : error.message)
     }
   }
-
+  //@param message : the message to be visible
+  //@param conversation: message will be visible for current conversation members
   async setVisibility(message: any, conversation: any) {
     //set visibility
     for (const member of conversation.members) {
@@ -227,9 +228,38 @@ export class MessagesService<ServiceParams extends Params = MessagesParams> exte
   }
   async remove(id: any, params: any): Promise<any> {
     const convId = params.query.conversation
-
-    if (id) {
-      //delete message case
+    if (convId) {
+      const messages = await super.find({
+        query: {
+          conversation: convId
+        }
+      })
+      for (const msg of messages.data) {
+        //delete message visibility
+        await app.service('message-visibility').remove(null, {
+          query: {
+            messageId: msg._id.toString()
+          }
+        })
+        //delete message recievings
+        await app.service('message-recieving').remove(null, {
+          query: {
+            message: msg._id.toString()
+          }
+        })
+        //delete message seeings
+        await app.service('message-seen').remove(null, {
+          query: {
+            message: msg._id.toString()
+          }
+        })
+        await super.remove(msg._id.toString(), params)
+      }
+      return {
+        status: 200,
+        message: 'All messages have been deleted successfully.'
+      }
+    } else {
       //delete message visibility
       await app.service('message-visibility').remove(null, {
         query: {
@@ -248,9 +278,35 @@ export class MessagesService<ServiceParams extends Params = MessagesParams> exte
           message: id.toString()
         }
       })
+      //delete files related to message
+      await this.deleteFiles(id)
+      return await super.remove(id, params)
     }
-
-    return await super.remove(id, params)
+  }
+  async deleteFiles(msgId: string): Promise<void> {
+    const messageFiles = await app.service('message-files').find({
+      query: {
+        message: msgId.toString()
+      }
+    })
+    if (messageFiles.data.length == 0) {
+      return
+    }
+    for (const record of messageFiles.data[0].urls!) {
+      const urlSplit = record.split('/')
+      const photoName = urlSplit[urlSplit.length - 1]
+      fs.access('public/messageFiles/' + photoName, fs.constants.F_OK, (err) => {
+        if (err) {
+          // Handle the case where the file does not exist
+        } else {
+          fs.unlink('public/messageFiles/' + photoName, (err) => {
+            if (err) {
+              console.error(err)
+            }
+          })
+        }
+      })
+    }
   }
   async createNotification(conversationId: string, content: string, params: any) {
     //create a notification for members
