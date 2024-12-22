@@ -69,6 +69,7 @@ export class MessageFilesService<ServiceParams extends Params = MessageFilesPara
 export const getOptions = (app: Application): MongoDBAdapterOptions => {
   return {
     paginate: app.get('paginate'),
-    Model: app.get('mongodbClient').then((db) => db.collection('message-files'))
+    Model: app.get('mongodbClient').then((db) => db.collection('message-files')),
+    multi: ['remove']
   }
 }
