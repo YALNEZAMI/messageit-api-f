@@ -58,7 +58,6 @@ export class MessageFilesService<ServiceParams extends Params = MessageFilesPara
       urls.push(url)
     }
     const messageObject = await app.service('messages')._get(message)
-    console.log('messageObject  ', messageObject)
     await this._create({
       conversation: messageObject.conversation,
       message,
