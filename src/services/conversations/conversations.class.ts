@@ -233,6 +233,7 @@ export class ConversationsService<ServiceParams extends Params = ConversationsPa
       })
       await super.remove(id)
     } else {
+      //member leaving
       //create notification
       await app.service('messages').createNotification(id, 'a quitté la conversation.', params)
 
