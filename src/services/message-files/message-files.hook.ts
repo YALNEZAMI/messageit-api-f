@@ -3,7 +3,6 @@ import { BadRequest } from '@feathersjs/errors'
 
 export const fileHook = () => {
   return async (context: HookContext): Promise<HookContext> => {
-    console.log('hookbeging')
     const treatedFiles = []
     for (const file of context.data.files) {
       if (!context.data || !file || !file.buffer) {
