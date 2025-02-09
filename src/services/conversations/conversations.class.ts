@@ -111,6 +111,7 @@ export class ConversationsService<ServiceParams extends Params = ConversationsPa
           $sort: { createdAt: -1 },
           conversation: conv._id.toString(),
           $limit: 1
+          // text: { $ne: '' }
         }
       })
       if (message.total > 0) {
@@ -261,7 +262,7 @@ export class ConversationsService<ServiceParams extends Params = ConversationsPa
       //create notification
       await app
         .service('messages')
-        .createNotification(id, `a changé le theme de ${conv.theme.name + ' à ' + body.theme.name}.`, params)
+        .createNotification(id, ` a changé le theme de ${conv.theme.name + ' à ' + body.theme.name}.`, params)
     }
     //group
     if (conv.type == 'group') {
@@ -284,7 +285,7 @@ export class ConversationsService<ServiceParams extends Params = ConversationsPa
         //create notification
         await app
           .service('messages')
-          .createNotification(id, `a changé le nom de ${conv.name + ' à ' + body.name}.`, params)
+          .createNotification(id, ` a changé le nom de ${conv.name + ' à ' + body.name}.`, params)
       }
       //if membership operation
       if (member) {
