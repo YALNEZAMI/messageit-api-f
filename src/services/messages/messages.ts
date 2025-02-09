@@ -48,7 +48,6 @@ export const messages = (app: Application) => {
       find: [],
       get: [],
       create: [
-        setTimestamps(),
         schemaHooks.validateData(messagesDataValidator),
         schemaHooks.resolveData(messagesDataResolver)
       ],
