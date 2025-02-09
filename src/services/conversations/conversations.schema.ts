@@ -15,6 +15,7 @@ export const conversationsSchema = Type.Object(
     createdAt: Type.String({ format: 'date-time' }),
     updatedAt: Type.String({ format: 'date-time' }),
     name: Type.Optional(Type.String()),
+    description: Type.Optional(Type.String()),
     type: Type.String(),
     members: Type.Array(Type.Any(), {
       uniqueItems: true
@@ -44,7 +45,7 @@ export const conversationsExternalResolver = resolve<Conversations, HookContext<
 // Schema for creating new entries
 export const conversationsDataSchema = Type.Pick(
   conversationsSchema,
-  ['members', 'theme', 'name', 'createdAt', 'updatedAt', 'type', 'image'],
+  ['members', 'theme', 'name', 'description', 'createdAt', 'updatedAt', 'type', 'image'],
   {
     $id: 'ConversationsData'
   }
