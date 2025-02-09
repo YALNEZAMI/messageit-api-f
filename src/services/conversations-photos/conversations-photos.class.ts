@@ -68,7 +68,7 @@ export class ConversationsPhotosService<
     )
     await app
       .service('messages')
-      .createNotification(conversationId, 'a changé la photo de la conversation.', params)
+      .createNotification(conversationId, ' a changé la photo de la conversation.', params)
     return {
       message: 'File uploaded successfully',
       path: filePath
