@@ -324,7 +324,6 @@ export class MessagesService<ServiceParams extends Params = MessagesParams> exte
         conversation: conversationId,
         text: `${updater.name + content}`,
         createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
         type: 'notification'
       },
       {
