@@ -73,6 +73,7 @@ export const myUsersQuerySchema = Type.Intersect(
         name: Type.Optional(Type.String()),
         email: Type.Optional(Type.String()),
         statusChecking: Type.Optional(Type.Boolean()),
+        statusCheckingIntervalleTime: Type.Optional(Type.Number()),
 
         currentUserId: Type.Optional(Type.String())
       },

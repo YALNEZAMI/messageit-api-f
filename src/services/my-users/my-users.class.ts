@@ -92,6 +92,14 @@ export class MyUsersService<ServiceParams extends Params = MyUsersParams> extend
   async patch(id: any, data: any, params: any): Promise<any> {
     // Check if the user already exists by name
     if (params.query.statusChecking) {
+      console.log('status checking', params.query)
+      if (params.query.statusChecking) {
+        setTimeout(async () => {
+          await super.patch(id, {
+            onLine: false
+          })
+        }, params.query.statusCheckingIntervalleTime - 5000)
+      }
       return await super.patch(id, {
         onLine: data.onLine
       })
@@ -125,7 +133,6 @@ export class MyUsersService<ServiceParams extends Params = MyUsersParams> extend
         inputId: 'email'
       }
     }
-
     // Proceed with the patch operation
     return await super._patch(id, data)
   }
