@@ -284,16 +284,18 @@ export class MessagesService<ServiceParams extends Params = MessagesParams> exte
     }
   }
   async deleteFiles(msgId: string): Promise<void> {
-    await app.service('message-files').remove(null, {
-      query: {
-        message: msgId
-      }
-    })
     const messageFiles = await app.service('message-files').find({
       query: {
         message: msgId.toString()
       }
     })
+    //delete files relative to message from db
+    await app.service('message-files').remove(null, {
+      query: {
+        message: msgId
+      }
+    })
+
     if (messageFiles.data.length == 0) {
       return
     }
