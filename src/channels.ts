@@ -47,7 +47,7 @@ export const channels = (app: Application) => {
   app.service('conversations').publish((data: any, hook: HookContext) => {
     const res: any = []
     for (const member of data.members) {
-      member._id.toString()
+      member._id != undefined
         ? res.push(app.channel('userId=' + member._id.toString()))
         : res.push(app.channel('userId=' + member))
     }
