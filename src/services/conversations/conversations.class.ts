@@ -51,20 +51,18 @@ export class ConversationsService<ServiceParams extends Params = ConversationsPa
           case 'ai':
             return 'assistant boby ai'.toLowerCase().includes(key)
           case 'group':
-            return conv.name.toLowerCase().includes(key)
+            return conv.name.toLowerCase().trim().includes(key)
           case 'private':
             const otherUser = conv.members.find((member: any) => {
               return member._id.toString() != currentUserId
             })
             if (otherUser) {
-              return otherUser.name.includes(key)
+              return otherUser.name.trim().includes(key)
             } else {
               return false
             }
           default:
             return false
-
-            break
         }
       })
     }
@@ -183,6 +181,7 @@ export class ConversationsService<ServiceParams extends Params = ConversationsPa
 
     //and finally create and return the new conversation
     const convResult = await super._create(body)
+
     //create Group rights
     if (body.type == 'group') {
       const rights = {
@@ -192,6 +191,7 @@ export class ConversationsService<ServiceParams extends Params = ConversationsPa
       }
       await app.service('group-rights').create(rights)
     }
+    app.service('conversations').emit('create', convResult)
     return convResult
   }
   async remove(id: any, params: any): Promise<any> {

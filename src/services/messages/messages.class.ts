@@ -31,7 +31,7 @@ export class MessagesService<ServiceParams extends Params = MessagesParams> exte
       paginate: false
     })
     messages = messages.filter((msg: any) => {
-      return msg.text.includes(key)
+      return msg.text.toLowerCase().trim().includes(key.toLowerCase().trim())
     })
 
     messages = await MessagesService.populateMessages(messages, params)
