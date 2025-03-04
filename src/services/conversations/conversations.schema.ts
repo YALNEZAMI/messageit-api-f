@@ -31,6 +31,12 @@ export const conversationsSchema = Type.Object(
       }),
       name: Type.String({
         default: 'Basique'
+      }),
+      photo: Type.String({
+        default: 'https://cdn.pixabay.com/photo/2019/02/21/22/17/crocus-4012433_1280.jpg'
+      }),
+      emoji: Type.String({
+        default: '👍'
       })
     })
   },
