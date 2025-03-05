@@ -6,8 +6,6 @@ export const validateMembership = () => {
     const idConv = context.params.query.conversation
     const idUser = context.params.user._id.toString()
 
-    console.log('idUser', idUser)
-
     const conv = await context.app.service('conversations').get(idConv)
     const isMember = conv.members.some((member: any) => member._id == idUser)
 
