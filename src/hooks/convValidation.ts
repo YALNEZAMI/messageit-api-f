@@ -4,8 +4,10 @@ import errors from '@feathersjs/errors'
 export const validateMembership = () => {
   return async (context: HookContext) => {
     const idConv = context.params.query.conversation
+    if (!idConv) {
+      return context
+    }
     const idUser = context.params.user._id.toString()
-
     const conv = await context.app.service('conversations').get(idConv)
     const isMember = conv.members.some((member: any) => member._id == idUser)
 

@@ -257,6 +257,14 @@ export class ConversationsService<ServiceParams extends Params = ConversationsPa
     const member = params.query.member
     const currentUserId = params.user._id.toString()
     const conv = await super._get(id)
+    //check memberShip
+    const isMember = conv.members.includes(currentUserId)
+    if (!isMember) {
+      return {
+        status: 400,
+        message: "You don't have rights to update conversation."
+      }
+    }
     //theme notification
     if (body.theme && body.theme.name != conv.theme.name) {
       //create notification
