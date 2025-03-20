@@ -20,8 +20,10 @@ export const channels = (app: Application) => {
     // real-time connection, e.g. when logging in via REST
     if (connection) {
       const user = await app.service('my-users')._patch(connection.user._id.toString(), {
-        onLine: true
+        onLine: true,
+        lastConnection: new Date().toISOString()
       })
+
       app.service('my-users').emit('patched', user)
 
       // The connection is no longer anonymous, remove it
