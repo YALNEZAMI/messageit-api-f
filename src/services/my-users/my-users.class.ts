@@ -91,18 +91,7 @@ export class MyUsersService<ServiceParams extends Params = MyUsersParams> extend
   }
   async patch(id: any, data: any, params: any): Promise<any> {
     // Check if the user already exists by name
-    if (params.query.statusChecking) {
-      if (params.query.statusChecking) {
-        setTimeout(async () => {
-          await super.patch(id, {
-            onLine: false
-          })
-        }, params.query.statusCheckingIntervalleTime - 5000)
-      }
-      return await super.patch(id, {
-        onLine: data.onLine
-      })
-    }
+
     const userExistByName = await this._find({
       query: {
         name: data.name
