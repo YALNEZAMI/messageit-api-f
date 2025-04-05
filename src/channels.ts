@@ -15,6 +15,17 @@ export const channels = (app: Application) => {
     app.channel('anonymous').join(connection)
   })
 
+  //set user offline
+  app.on('disconnect', async (connection: RealTimeConnection) => {
+    app.channel('anonymous').leave(connection)
+    // On a new real-time connection, add it to the anonymous channel
+    const user = await app.service('my-users')._patch(connection.user._id.toString(), {
+      onLine: false,
+      lastConnection: new Date().toISOString()
+    })
+    app.service('my-users').emit('patched', user)
+  })
+
   app.on('login', async (authResult: AuthenticationResult, { connection }: Params) => {
     // connection can be undefined if there is no
     // real-time connection, e.g. when logging in via REST
