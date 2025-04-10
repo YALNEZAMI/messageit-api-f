@@ -8,12 +8,24 @@ import type { Application } from '../../declarations'
 import type { Messages, MessagesData, MessagesPatch, MessagesQuery } from './messages.schema'
 import { app } from '../../app'
 import { ObjectId } from 'mongodb'
-import * as fs from 'fs'
+import fs from 'fs'
+import { GoogleGenerativeAI } from '@google/generative-ai'
+import { BadRequest } from '@feathersjs/errors'
+import path from 'path'
+
 export type { Messages, MessagesData, MessagesPatch, MessagesQuery }
 
 export interface MessagesParams extends MongoDBAdapterParams<MessagesQuery> {}
 type ContentDto = { role: string; parts: { text: string } }
-
+// Converts local file information to base64
+function fileToGenerativePart(path: string, mimeType: string) {
+  return {
+    inlineData: {
+      data: Buffer.from(fs.readFileSync(path)).toString('base64'),
+      mimeType
+    }
+  }
+}
 // By default calls the standard MongoDB adapter service methods but can be customized with your own functionality.
 export class MessagesService<ServiceParams extends Params = MessagesParams> extends MongoDBService<
   Messages,
@@ -101,6 +113,18 @@ export class MessagesService<ServiceParams extends Params = MessagesParams> exte
     return messages
   }
   async create(messageBody: any, params: any): Promise<any> {
+    console.log('1')
+    //handle empty msg
+    if (messageBody.text.trim() == '' && messageBody.files.length == 0) {
+      return messageBody
+    }
+    //handle files
+    if (messageBody.files != undefined && messageBody.files.length > 0) {
+      console.log('ther are files')
+      const filesHandling = await this.handleFiles(messageBody, params)
+      console.log('filesHandling', filesHandling)
+    }
+
     let userMessage: any
     const conversation = await app.service('conversations').get(messageBody.conversation, {
       ...params,
@@ -109,10 +133,7 @@ export class MessagesService<ServiceParams extends Params = MessagesParams> exte
 
     //handl ai conversations
     if (conversation.type == 'ai') {
-      // const response = await ollama.chat({
-      //   model: 'llama3:latest',
-      //   messages: [{ role: 'user', content: body.text }]
-      // })
+      console.log('3')
       const aiResponse = await this.geminiRequest(messageBody, params)
       //create user message
       userMessage = await super._create(messageBody, params)
@@ -147,15 +168,64 @@ export class MessagesService<ServiceParams extends Params = MessagesParams> exte
         aiMessage
       }
     } else {
+      console.log('not ai message create')
       userMessage = await super._create(messageBody, params)
+
       //set visibility
       await this.setVisibility(userMessage, conversation)
       const populating = await MessagesService.populateMessages([userMessage], params)
       userMessage = populating[0]
+      console.log('10')
       return userMessage
     }
   }
+  async handleFiles(
+    messageBody: any,
+    params: any
+  ): Promise<{
+    urls: string[]
+    temporaryMessageId: string
+  }> {
+    console.log('create messagefiles')
+    if (!messageBody.files) {
+      throw new BadRequest('No file provided')
+    }
+    const urls = []
+    let message = new ObjectId().toString()
+    for (const file of messageBody.files) {
+      if (!file) {
+        continue
+      }
+      const { buffer, originalname } = file
+      const uploadsDir = path.join(__dirname, '..', '..', '..', 'public', 'messageFiles')
+      if (!fs.existsSync(uploadsDir)) {
+        fs.mkdirSync(uploadsDir, { recursive: true })
+      }
+      let extSplit = originalname.split('.')
+      const ext = extSplit[extSplit.length - 1]
+      const finalFileName = `${message}-${originalname}.${ext}`
+      const filePath = path.join(uploadsDir, finalFileName)
 
+      // Write the file buffer to disk
+      fs.writeFileSync(filePath, buffer)
+      //set my-users image
+      const port = app.get('port')
+      const host = app.get('host')
+      const devMode = process.env.DEV_MODE
+      const url =
+        devMode === 'true'
+          ? `http://${host}:${port}/messageFiles/${finalFileName}`
+          : `https://${host}:${port}/messageFiles/${finalFileName}`
+      urls.push(url)
+    }
+    const messageObject = await app.service('messages')._get(message)
+    const messageFiles = await app.service('message-files')._create({
+      conversation: messageObject.conversation,
+      message,
+      urls
+    })
+    return { urls, temporaryMessageId: message }
+  }
   async getGeminiContents(messageBody: any, params: any): Promise<ContentDto[]> {
     const messages = await super._find({
       ...params,
@@ -183,6 +253,23 @@ export class MessagesService<ServiceParams extends Params = MessagesParams> exte
       }
     })
     return res
+  }
+  async analyseMedias(mediasPaths: any[], prompt: string): Promise<string> {
+    const genAI = new GoogleGenerativeAI(process.env.GEMINI_KEY as string)
+    const model = genAI.getGenerativeModel({ model: 'gemini-1.5-pro' })
+
+    const imageParts: any[] = []
+    mediasPaths.map((path: string) => {
+      const split = path.split('.')
+      const ext = split[split.length - 1]
+      const mimeType = 'image/' + (ext != 'jpg' ? ext : 'jpeg')
+      imageParts.push(fileToGenerativePart(path, mimeType))
+    })
+
+    const generatedContent = await model.generateContent([prompt, ...imageParts])
+    const text = generatedContent.response.text()
+    console.log(text)
+    return text
   }
   async geminiRequest(messageBody: any, params: any) {
     // Your API key
