@@ -113,9 +113,8 @@ export class MessagesService<ServiceParams extends Params = MessagesParams> exte
     return messages
   }
   async create(messageBody: any, params: any): Promise<any> {
-    console.log('1')
     //handle empty msg
-    if (messageBody.text.trim() == '' && messageBody.files.length == 0) {
+    if (!messageBody.text && messageBody.files.length == 0) {
       return messageBody
     }
     //handle files
