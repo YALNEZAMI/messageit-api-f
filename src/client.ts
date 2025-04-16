@@ -28,14 +28,6 @@ export type {
   GroupRightsPatch
 } from './services/group-rights/group-rights.shared'
 
-import { usersPhotosClient } from './services/users-photos/users-photos.shared'
-export type {
-  UsersPhotos,
-  UsersPhotosData,
-  UsersPhotosQuery,
-  UsersPhotosPatch
-} from './services/users-photos/users-photos.shared'
-
 import { emojisClient } from './services/emojis/emojis.shared'
 export type { Emojis, EmojisData, EmojisQuery, EmojisPatch } from './services/emojis/emojis.shared'
 
@@ -128,7 +120,7 @@ export type ClientApplication = Application<ServiceTypes, Configuration>
  * @see https://dove.feathersjs.com/api/client.html
  * @returns The Feathers client application
  */
-export const createClient = <Configuration = any,>(
+export const createClient = <Configuration = any>(
   connection: TransportConnection<ServiceTypes>,
   authenticationOptions: Partial<AuthenticationClientOptions> = {}
 ) => {
@@ -150,7 +142,6 @@ export const createClient = <Configuration = any,>(
   client.configure(messageRecievingClient)
   client.configure(messageSeenClient)
   client.configure(emojisClient)
-  client.configure(usersPhotosClient)
   client.configure(groupRightsClient)
   client.configure(conversationsPhotosClient)
   client.configure(messageFilesClient)

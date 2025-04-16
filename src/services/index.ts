@@ -1,7 +1,6 @@
 import { messageFiles } from './message-files/message-files'
 import { conversationsPhotos } from './conversations-photos/conversations-photos'
 import { groupRights } from './group-rights/group-rights'
-import { usersPhotos } from './users-photos/users-photos'
 import { emojis } from './emojis/emojis'
 import { messageSeen } from './message-seen/message-seen'
 import { messageRecieving } from './message-recieving/message-recieving'
@@ -23,7 +22,6 @@ export const services = (app: Application) => {
   app.configure(messageFiles)
   app.configure(conversationsPhotos)
   app.configure(groupRights)
-  app.configure(usersPhotos)
   app.configure(emojis)
   app.configure(messageSeen)
   app.configure(messageRecieving)
