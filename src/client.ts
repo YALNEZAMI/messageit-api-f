@@ -12,14 +12,6 @@ export type {
   MessageFilesPatch
 } from './services/message-files/message-files.shared'
 
-import { conversationsPhotosClient } from './services/conversations-photos/conversations-photos.shared'
-export type {
-  ConversationsPhotos,
-  ConversationsPhotosData,
-  ConversationsPhotosQuery,
-  ConversationsPhotosPatch
-} from './services/conversations-photos/conversations-photos.shared'
-
 import { groupRightsClient } from './services/group-rights/group-rights.shared'
 export type {
   GroupRights,
@@ -143,7 +135,7 @@ export const createClient = <Configuration = any>(
   client.configure(messageSeenClient)
   client.configure(emojisClient)
   client.configure(groupRightsClient)
-  client.configure(conversationsPhotosClient)
+
   client.configure(messageFilesClient)
   return client
 }

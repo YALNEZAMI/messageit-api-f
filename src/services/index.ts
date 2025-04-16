@@ -1,5 +1,5 @@
 import { messageFiles } from './message-files/message-files'
-import { conversationsPhotos } from './conversations-photos/conversations-photos'
+
 import { groupRights } from './group-rights/group-rights'
 import { emojis } from './emojis/emojis'
 import { messageSeen } from './message-seen/message-seen'
@@ -20,7 +20,7 @@ import type { Application } from '../declarations'
 
 export const services = (app: Application) => {
   app.configure(messageFiles)
-  app.configure(conversationsPhotos)
+
   app.configure(groupRights)
   app.configure(emojis)
   app.configure(messageSeen)
