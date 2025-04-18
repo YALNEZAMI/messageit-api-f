@@ -17,7 +17,6 @@ import {
 import type { Application } from '../../declarations'
 import { MessageFilesService, getOptions } from './message-files.class'
 import { messageFilesPath, messageFilesMethods } from './message-files.shared'
-import { fileHook } from './message-files.hook'
 
 export * from './message-files.class'
 export * from './message-files.schema'
@@ -48,7 +47,6 @@ export const messageFiles = (app: Application) => {
       find: [],
       get: [],
       create: [
-        fileHook(),
         schemaHooks.validateData(messageFilesDataValidator),
         schemaHooks.resolveData(messageFilesDataResolver)
       ],

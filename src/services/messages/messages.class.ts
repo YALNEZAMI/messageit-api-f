@@ -18,14 +18,16 @@ export type { Messages, MessagesData, MessagesPatch, MessagesQuery }
 export interface MessagesParams extends MongoDBAdapterParams<MessagesQuery> {}
 type ContentDto = { role: string; parts: { text: string } }
 // Converts local file information to base64
-function fileToGenerativePart(path: string, mimeType: string) {
+async function fileUrlToGenerativePart(url: string, mimeType: string) {
+  const response = await axios.get(url, { responseType: 'arraybuffer' })
   return {
     inlineData: {
-      data: Buffer.from(fs.readFileSync(path)).toString('base64'),
+      data: Buffer.from(response.data).toString('base64'),
       mimeType
     }
   }
 }
+
 // By default calls the standard MongoDB adapter service methods but can be customized with your own functionality.
 export class MessagesService<ServiceParams extends Params = MessagesParams> extends MongoDBService<
   Messages,
@@ -117,14 +119,9 @@ export class MessagesService<ServiceParams extends Params = MessagesParams> exte
     if (!messageBody.text && messageBody.files.length == 0) {
       return messageBody
     }
-    //handle files
-    if (messageBody.files != undefined && messageBody.files.length > 0) {
-      console.log('ther are files')
-      const filesHandling = await this.handleFiles(messageBody, params)
-      console.log('filesHandling', filesHandling)
-    }
 
-    let userMessage: any
+    let userMessage: any = await super._create(messageBody, params)
+    let aiMessage: any = null
     const conversation = await app.service('conversations').get(messageBody.conversation, {
       ...params,
       query: {}
@@ -132,10 +129,13 @@ export class MessagesService<ServiceParams extends Params = MessagesParams> exte
 
     //handl ai conversations
     if (conversation.type == 'ai') {
-      console.log('3')
-      const aiResponse = await this.geminiRequest(messageBody, params)
-      //create user message
-      userMessage = await super._create(messageBody, params)
+      let aiResponse = 'Error'
+      if (messageBody.files.length > 0) {
+        aiResponse = await this.analyseMedias(messageBody.files, messageBody.text)
+      } else {
+        aiResponse = await this.geminiRequest(messageBody, params)
+      }
+
       userMessage.sender = await app.service('my-users').get(messageBody.sender, {
         ...params,
         query: {}
@@ -148,7 +148,7 @@ export class MessagesService<ServiceParams extends Params = MessagesParams> exte
         }
       })
       aiUser = aiUser.data[0]._id
-      const aiMessage = await super.create(
+      aiMessage = await super.create(
         {
           ...messageBody,
           createdAt: new Date().toISOString(),
@@ -161,70 +161,31 @@ export class MessagesService<ServiceParams extends Params = MessagesParams> exte
       //set visibility
       await this.setVisibility(userMessage, conversation)
       await this.setVisibility(aiMessage, conversation)
-
-      return {
-        myMessage: userMessage,
-        aiMessage
-      }
     } else {
-      console.log('not ai message create')
-      userMessage = await super._create(messageBody, params)
-
       //set visibility
       await this.setVisibility(userMessage, conversation)
       const populating = await MessagesService.populateMessages([userMessage], params)
       userMessage = populating[0]
-      console.log('10')
-      return userMessage
     }
+    //handle files
+    if (messageBody.files != undefined && messageBody.files.length > 0) {
+      const res = await app.service('message-files').create(
+        {
+          conversation: messageBody.conversation,
+          message: userMessage._id.toString(),
+          urls: messageBody.files
+        },
+        params
+      )
+    }
+    return conversation.type == 'ai'
+      ? {
+          myMessage: userMessage,
+          aiMessage
+        }
+      : userMessage
   }
-  async handleFiles(
-    messageBody: any,
-    params: any
-  ): Promise<{
-    urls: string[]
-    temporaryMessageId: string
-  }> {
-    console.log('create messagefiles')
-    if (!messageBody.files) {
-      throw new BadRequest('No file provided')
-    }
-    const urls = []
-    let message = new ObjectId().toString()
-    for (const file of messageBody.files) {
-      if (!file) {
-        continue
-      }
-      const { buffer, originalname } = file
-      const uploadsDir = path.join(__dirname, '..', '..', '..', 'public', 'messageFiles')
-      if (!fs.existsSync(uploadsDir)) {
-        fs.mkdirSync(uploadsDir, { recursive: true })
-      }
-      let extSplit = originalname.split('.')
-      const ext = extSplit[extSplit.length - 1]
-      const finalFileName = `${message}-${originalname}.${ext}`
-      const filePath = path.join(uploadsDir, finalFileName)
 
-      // Write the file buffer to disk
-      fs.writeFileSync(filePath, buffer)
-      //set my-users image
-      const port = app.get('port')
-      const host = app.get('host')
-      const devMode = process.env.DEV_MODE
-      const url =
-        devMode === 'true'
-          ? `http://${host}:${port}/messageFiles/${finalFileName}`
-          : `https://${host}:${port}/messageFiles/${finalFileName}`
-      urls.push(url)
-    }
-    const messageObject = await app.service('messages')._get(message)
-    const messageFiles = await app.service('message-files')._create({
-      conversation: messageObject.conversation,
-      message,
-      urls
-    })
-    return { urls, temporaryMessageId: message }
-  }
   async getGeminiContents(messageBody: any, params: any): Promise<ContentDto[]> {
     const messages = await super._find({
       ...params,
@@ -257,22 +218,21 @@ export class MessagesService<ServiceParams extends Params = MessagesParams> exte
     const genAI = new GoogleGenerativeAI(process.env.GEMINI_KEY as string)
     const model = genAI.getGenerativeModel({ model: 'gemini-1.5-pro' })
 
-    const imageParts: any[] = []
-    mediasPaths.map((path: string) => {
-      const split = path.split('.')
-      const ext = split[split.length - 1]
-      const mimeType = 'image/' + (ext != 'jpg' ? ext : 'jpeg')
-      imageParts.push(fileToGenerativePart(path, mimeType))
-    })
+    const imageParts = await Promise.all(
+      mediasPaths.map(async (url: string) => {
+        const ext = url.split('.').pop()
+        const mimeType = 'image/' + (ext != 'jpg' ? ext : 'jpeg')
+        return await fileUrlToGenerativePart(url, mimeType)
+      })
+    )
 
     const generatedContent = await model.generateContent([prompt, ...imageParts])
     const text = generatedContent.response.text()
-    console.log(text)
     return text
   }
-  async geminiRequest(messageBody: any, params: any) {
+  async geminiRequest(messageBody: any, params: any): Promise<string> {
+    let result = 'Error'
     // Your API key
-
     const GEMINI_KEY = process.env.GEMINI_KEY
     // API endpoint
     const endpoint =
@@ -292,11 +252,11 @@ export class MessagesService<ServiceParams extends Params = MessagesParams> exte
       })
 
       // Log the response data
-      let content = response.data.candidates[0].content.parts[0].text
-      return content
+      result = response.data.candidates[0].content.parts[0].text
     } catch (error: any) {
       console.error('Error:', error.response ? error.response.data : error.message)
     }
+    return result
   }
   //@param message : the message to be visible
   //@param conversation: message will be visible for current conversation members

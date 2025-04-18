@@ -14,8 +14,7 @@ export const messageFilesSchema = Type.Object(
     _id: ObjectIdSchema(),
     message: Type.String(),
     conversation: Type.Optional(Type.String()),
-    urls: Type.Optional(Type.Array(Type.String())),
-    files: Type.Optional(Type.Array(Type.Any()))
+    urls: Type.Optional(Type.Array(Type.String()))
   },
   { $id: 'MessageFiles ', additionalProperties: false }
 )
@@ -26,13 +25,9 @@ export const messageFilesResolver = resolve<MessageFiles, HookContext<MessageFil
 export const messageFilesExternalResolver = resolve<MessageFiles, HookContext<MessageFilesService>>({})
 
 // Schema for creating new entries
-export const messageFilesDataSchema = Type.Pick(
-  messageFilesSchema,
-  ['message', 'conversation', 'urls', 'files'],
-  {
-    $id: 'MessageFilesData'
-  }
-)
+export const messageFilesDataSchema = Type.Pick(messageFilesSchema, ['message', 'conversation', 'urls'], {
+  $id: 'MessageFilesData'
+})
 export type MessageFilesData = Static<typeof messageFilesDataSchema>
 export const messageFilesDataValidator = getValidator(messageFilesDataSchema, dataValidator)
 export const messageFilesDataResolver = resolve<MessageFiles, HookContext<MessageFilesService>>({})

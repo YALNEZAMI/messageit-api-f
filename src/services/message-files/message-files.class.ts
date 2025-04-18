@@ -26,45 +26,7 @@ export class MessageFilesService<ServiceParams extends Params = MessageFilesPara
   MessageFilesPatch
 > {
   async create(data: any, params: any): Promise<any> {
-    console.log('create messagefiles')
-    if (!data.files) {
-      throw new BadRequest('No file provided')
-    }
-    const urls = []
-    let message = params?.query!.message
-    for (const file of data.files) {
-      if (!file) {
-        continue
-      }
-      const { buffer, originalname } = file
-      const uploadsDir = path.join(__dirname, '..', '..', '..', 'public', 'messageFiles')
-      if (!fs.existsSync(uploadsDir)) {
-        fs.mkdirSync(uploadsDir, { recursive: true })
-      }
-      let extSplit = originalname.split('.')
-      const ext = extSplit[extSplit.length - 1]
-      const finalFileName = `${message}-${originalname}.${ext}`
-      const filePath = path.join(uploadsDir, finalFileName)
-
-      // Write the file buffer to disk
-      fs.writeFileSync(filePath, buffer)
-      //set my-users image
-      const port = app.get('port')
-      const host = app.get('host')
-      const devMode = process.env.DEV_MODE
-      const url =
-        devMode === 'true'
-          ? `http://${host}:${port}/messageFiles/${finalFileName}`
-          : `https://${host}:${port}/messageFiles/${finalFileName}`
-      urls.push(url)
-    }
-    const messageObject = await app.service('messages')._get(message)
-    const messageFiles = await this._create({
-      conversation: messageObject.conversation,
-      message,
-      urls
-    })
-    return messageFiles
+    return await this._create(data)
   }
 }
 

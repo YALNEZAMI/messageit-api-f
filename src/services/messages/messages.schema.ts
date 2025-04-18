@@ -19,7 +19,7 @@ export const messagesSchema = Type.Object(
     sender: Type.Optional(Type.Any()),
     conversation: Type.Any(),
     transfered: Type.Optional(Type.Boolean()),
-    files: Type.Optional(Type.Array(Type.Any()))
+    files: Type.Optional(Type.Array(Type.String()))
   },
   { $id: 'Messages', additionalProperties: false }
 )
