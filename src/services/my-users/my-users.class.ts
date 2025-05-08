@@ -27,7 +27,6 @@ export class MyUsersService<ServiceParams extends Params = MyUsersParams> extend
         $select: {
           theme: 0,
           email: 0,
-          createdAt: 0,
           updatedAt: 0
         }
       },
@@ -80,7 +79,6 @@ export class MyUsersService<ServiceParams extends Params = MyUsersParams> extend
       $select: {
         theme: 0,
         email: 0,
-        createdAt: 0,
         updatedAt: 0
       }
     }

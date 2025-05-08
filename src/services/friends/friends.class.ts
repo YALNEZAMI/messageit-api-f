@@ -25,7 +25,13 @@ export class FriendsService<ServiceParams extends Params = FriendsParams> extend
     if (areFriends) {
       return { status: 500, message: 'Vous êtes déjà amis !' }
     }
-    await app.service('friend-acceptations')._create(data, params)
+    await app.service('friend-acceptations')._create(
+      {
+        seen: false,
+        ...data
+      },
+      params
+    )
     const queryRemoveRequest: FriendsQuery = {
       sender: data.sender,
       recipient: data.recipient,

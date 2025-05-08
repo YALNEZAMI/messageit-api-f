@@ -18,6 +18,7 @@ export const friendAcceptationsSchema = {
     createdAt: { type: 'string' },
     updatedAt: { type: 'string' },
     recipient: { type: 'string' },
+    seen: { type: 'boolean' },
     sender: { type: 'string' }
   }
 } as const
