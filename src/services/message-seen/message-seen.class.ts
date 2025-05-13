@@ -16,7 +16,20 @@ export class MessageSeenService<ServiceParams extends Params = MessageSeenParams
   MessageSeenData,
   MessageSeenParams,
   MessageSeenPatch
-> {}
+> {
+  async create(data: any, params: any): Promise<any> {
+    const alreadyExist = await super.find({
+      query: {
+        viewer: data.viewer,
+        message: data.message,
+        conversation: data.conversation
+      }
+    })
+    if (alreadyExist.total == 0) {
+      return super.create(data, params)
+    }
+  }
+}
 
 export const getOptions = (app: Application): MongoDBAdapterOptions => {
   return {
