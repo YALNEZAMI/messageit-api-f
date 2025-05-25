@@ -5,7 +5,8 @@ export const validateMembership = () => {
   return async (context: HookContext) => {
     const idConv = context.params.query.conversation
     if (!idConv) {
-      return context
+      console.log('Conversation id is required !')
+      throw new errors.Forbidden('Conversation id is required !')
     }
     const idUser = context.params.user._id.toString()
     const conv = await context.app.service('conversations').get(idConv)
