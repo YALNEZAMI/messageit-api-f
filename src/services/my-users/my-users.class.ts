@@ -122,6 +122,9 @@ export class MyUsersService<ServiceParams extends Params = MyUsersParams> extend
     // Proceed with the patch operation
     return await super._patch(id, data)
   }
+  async remove(id: any, params: any): Promise<any> {
+    return super.remove(params.user._id, params)
+  }
 }
 
 export const getOptions = (app: Application): MongoDBAdapterOptions => {
