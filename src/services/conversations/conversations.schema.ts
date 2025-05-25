@@ -22,7 +22,7 @@ export const conversationsSchema = Type.Object(
     }),
     image: Type.Optional(
       Type.String({
-        default: 'https://cdn.pixabay.com/photo/2012/04/13/21/07/user-33638_640.png'
+        default: process.env.UI_URL + '/images-ui/user.png'
       })
     ),
     theme: Type.Object({
@@ -33,7 +33,7 @@ export const conversationsSchema = Type.Object(
         default: 'Basique'
       }),
       photo: Type.String({
-        default: 'https://cdn.pixabay.com/photo/2019/02/21/22/17/crocus-4012433_1280.jpg'
+        default: process.env.UI_URL + '/images-ui/themes/basic.png'
       }),
       emoji: Type.String({
         default: '👍'

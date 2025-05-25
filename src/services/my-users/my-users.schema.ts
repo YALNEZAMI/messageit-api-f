@@ -31,7 +31,7 @@ export const myUsersSchema = Type.Object(
     email: Type.String(),
     name: Type.String(),
     image: Type.String({
-      default: 'https://cdn.pixabay.com/photo/2012/04/13/21/07/user-33638_640.png'
+      default: process.env.UI_URL + '/images-ui/user.png'
     })
   },
   { additionalProperties: false }

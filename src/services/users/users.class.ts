@@ -50,7 +50,7 @@ export class UserService<ServiceParams extends Params = UserParams> extends Mong
         _id: 'basic'
       },
 
-      image: 'https://cdn.pixabay.com/photo/2012/04/13/21/07/user-33638_640.png',
+      image: process.env.UI_URL + '/images-ui/user.png',
       onLine: true,
       aiUser: false,
       lastConnection: new Date().toISOString(),

@@ -142,9 +142,7 @@ export class ConversationsService<ServiceParams extends Params = ConversationsPa
         return convs[0]
       }
     }
-
-    //set default image
-    body.image = 'https://cdn.pixabay.com/photo/2012/04/13/21/07/user-33638_640.png'
+    const env = process.env
     //handle ai conversation case
     if (body.type == 'ai') {
       //check if already exist
@@ -173,7 +171,7 @@ export class ConversationsService<ServiceParams extends Params = ConversationsPa
         email: 'ai@ai.ai',
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
-        image: 'https://cdn.pixabay.com/photo/2014/04/03/11/55/robot-312566_1280.png'
+        image: env.UI_URL + '/images-ui/robot.png'
       } as any)
       //push it to covnersation members
       body.members.push(aiUser._id.toString())
@@ -206,6 +204,7 @@ export class ConversationsService<ServiceParams extends Params = ConversationsPa
           currentUserId == conversation.members[1]._id.toString())) //ai conv
     ) {
       await app.service('messages').remove(null, {
+        ...params,
         query: {
           conversation: conversation._id.toString()
         }

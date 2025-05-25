@@ -20,12 +20,19 @@ export const privateConversationExistHook = () => {
   }
 }
 export const setDefaultValues = () => {
+  const baseImageUrl = process.env.UI_URL + '/images-ui/'
   return async (context: HookContext) => {
+    let image = baseImageUrl + 'user.png'
+    if (context.data.type == 'ai') {
+      image = baseImageUrl + 'robot.png'
+    } else if (context.data.type == 'group') {
+      image = baseImageUrl + 'group.png'
+    }
+    context.data.image = image
     context.data.theme = {
       _id: 'basic',
       name: 'Basique',
-      photo:
-        'https://media.istockphoto.com/id/1153938533/fr/photo/abstrait-flou-fond-bleu-avec-double-exposition-de-bokeh-cercle-glitter-pour-l%C3%A9l%C3%A9ment-de.jpg?s=612x612&w=0&k=20&c=CjVwzz6s6wQFNRmNzWw5sIQpLzxvdAeG43ydsQnjWXM=',
+      photo: baseImageUrl + 'themes/basic.png',
       emoji: '👍'
     }
   }
