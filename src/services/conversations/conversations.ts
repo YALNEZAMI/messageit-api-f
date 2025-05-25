@@ -17,6 +17,7 @@ import { ConversationsService, getOptions } from './conversations.class'
 import { conversationsPath, conversationsMethods } from './conversations.shared'
 import setTimestamps from '../../hooks/dating'
 import { privateConversationExistHook, setDefaultValues } from './conversations.hooks'
+import { validateMembership } from '../../hooks/convValidation'
 
 export * from './conversations.class'
 export * from './conversations.schema'
@@ -50,6 +51,8 @@ export const conversations = (app: Application) => {
         schemaHooks.resolveData(conversationsDataResolver)
       ],
       patch: [
+        validateMembership(),
+
         setTimestamps(),
         schemaHooks.validateData(conversationsPatchValidator),
         schemaHooks.resolveData(conversationsPatchResolver)
