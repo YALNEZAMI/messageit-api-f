@@ -60,7 +60,9 @@ export class MessagesService<ServiceParams extends Params = MessagesParams> exte
       }
       //set refered message if exist
       if (message.referedMessage && message.referedMessage != '') {
-        message.referedMessage = await app.service('messages').get(message.referedMessage)
+        message.referedMessage = await app
+          .service('messages')
+          .get(message.referedMessage, { ...params, query: { conversation: message.conversation } })
         const sender = await app.service('my-users').get(message.referedMessage.sender, {
           ...params,
           query: {}
@@ -381,7 +383,7 @@ export class MessagesService<ServiceParams extends Params = MessagesParams> exte
     )
     const message = await this.get(notif._id.toString(), {
       ...params,
-      query: {}
+      query: { conversation: conversationId }
     })
     app.service('messages').emit('created', message)
     const conv = await app.service('conversations').get(conversationId, params)
