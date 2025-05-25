@@ -14,7 +14,7 @@ import {
   messageSeenQueryResolver
 } from './message-seen.schema'
 
-import type { Application } from '../../declarations'
+import type { Application, HookContext } from '../../declarations'
 import { MessageSeenService, getOptions } from './message-seen.class'
 import { messageSeenPath, messageSeenMethods } from './message-seen.shared'
 import setTimestamps from '../../hooks/dating'
@@ -45,6 +45,7 @@ export const messageSeen = (app: Application) => {
         schemaHooks.validateQuery(messageSeenQueryValidator),
         schemaHooks.resolveQuery(messageSeenQueryResolver)
       ],
+
       find: [],
       get: [],
       create: [
