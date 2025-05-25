@@ -26,7 +26,9 @@ export class MessageSeenService<ServiceParams extends Params = MessageSeenParams
       }
     })
     if (alreadyExist.total == 0) {
-      return super.create(data, params)
+      return super._create(data)
+    } else {
+      return alreadyExist.data[0]
     }
   }
 }
