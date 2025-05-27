@@ -14,7 +14,7 @@ import {
   messagesQueryResolver
 } from './messages.schema'
 
-import type { Application } from '../../declarations'
+import type { Application, HookContext } from '../../declarations'
 import { MessagesService, getOptions } from './messages.class'
 import { messagesPath, messagesMethods } from './messages.shared'
 import setTimestamps from '../../hooks/dating'
@@ -61,7 +61,24 @@ export const messages = (app: Application) => {
       remove: []
     },
     after: {
-      all: []
+      all: [],
+      create: [
+        //set new lastMessage to the conversation
+        async (context: HookContext) => {
+          const messageId = context.result.myMessage
+            ? context.result.myMessage._id.toString()
+            : context.result._id.toString()
+          //set the created message as seen by its sender
+          await app.service('message-seen').create(
+            {
+              message: messageId,
+              conversation: context.data.conversation,
+              viewer: context.params.user._id.toString()
+            },
+            context.params
+          )
+        }
+      ]
     },
     error: {
       all: []
