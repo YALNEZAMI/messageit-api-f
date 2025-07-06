@@ -13,9 +13,11 @@ export const messagesSchema = Type.Object(
   {
     _id: ObjectIdSchema(),
     createdAt: Type.String({ format: 'date-time' }),
+    updatedAt: Type.String({ format: 'date-time' }),
     referedMessage: Type.Optional(Type.Any()),
     type: Type.String(), //message|notification
     text: Type.Optional(Type.String()),
+    originalText: Type.Optional(Type.String()),
     sender: Type.Optional(Type.Any()),
     conversation: Type.Any(),
     transfered: Type.Optional(Type.Boolean()),
@@ -32,7 +34,17 @@ export const messagesExternalResolver = resolve<Messages, HookContext<MessagesSe
 // Schema for creating new entries
 export const messagesDataSchema = Type.Pick(
   messagesSchema,
-  ['text', 'sender', 'conversation', 'createdAt', 'referedMessage', 'type', 'transfered', 'files'],
+  [
+    'text',
+    'sender',
+    'conversation',
+    'createdAt',
+    'updatedAt',
+    'referedMessage',
+    'type',
+    'transfered',
+    'files'
+  ],
   {
     $id: 'MessagesData'
   }
@@ -54,6 +66,7 @@ export const messagesQueryProperties = Type.Pick(messagesSchema, [
   '_id',
   'text',
   'createdAt',
+  'updatedAt',
   'conversation',
   'sender'
 ])
