@@ -45,6 +45,7 @@ export class MessagesService<ServiceParams extends Params = MessagesParams> exte
       paginate: false
     })
     messages = messages.filter((msg: any) => {
+      if (!msg.text) return false
       return msg.text.toLowerCase().trim().includes(key.toLowerCase().trim())
     })
 
@@ -274,62 +275,62 @@ export class MessagesService<ServiceParams extends Params = MessagesParams> exte
       await app.service('message-visibility').create(visibility)
     }
   }
-  async remove(id: any, params: any): Promise<any> {
-    const convId = params.query.conversation
-    if (convId) {
-      const messages = await super.find({
-        query: {
-          conversation: convId
-        }
-      })
-      for (const msg of messages.data) {
-        //delete message visibility
-        await app.service('message-visibility').remove(null, {
-          query: {
-            messageId: msg._id.toString()
-          }
-        })
-        //delete message recievings
-        await app.service('message-recieving').remove(null, {
-          query: {
-            message: msg._id.toString()
-          }
-        })
-        //delete message seeings
-        await app.service('message-seen').remove(null, {
-          query: {
-            message: msg._id.toString()
-          }
-        })
-        await super.remove(msg._id.toString(), params)
+  async removeConversation(idConv: string, params: any) {
+    const messages = await super.find({
+      query: {
+        conversation: idConv
       }
-      return {
-        status: 200,
-        message: 'All messages have been deleted successfully.'
-      }
-    } else {
+    })
+    for (const msg of messages.data) {
+      await this.deleteFiles(msg._id as string)
+
       //delete message visibility
       await app.service('message-visibility').remove(null, {
         query: {
-          messageId: id.toString()
+          messageId: msg._id.toString()
         }
       })
       //delete message recievings
       await app.service('message-recieving').remove(null, {
         query: {
-          message: id.toString()
+          message: msg._id.toString()
         }
       })
       //delete message seeings
       await app.service('message-seen').remove(null, {
         query: {
-          message: id.toString()
+          message: msg._id.toString()
         }
       })
-      //delete files related to message
-      await this.deleteFiles(id)
-      return await super.remove(id, params)
+      await super.remove(msg._id.toString(), params)
     }
+    return {
+      status: 200,
+      message: 'All messages have been deleted successfully.'
+    }
+  }
+  async remove(id: any, params: any): Promise<any> {
+    //delete message visibility
+    await app.service('message-visibility').remove(null, {
+      query: {
+        messageId: id.toString()
+      }
+    })
+    //delete message recievings
+    await app.service('message-recieving').remove(null, {
+      query: {
+        message: id.toString()
+      }
+    })
+    //delete message seeings
+    await app.service('message-seen').remove(null, {
+      query: {
+        message: id.toString()
+      }
+    })
+    //delete files related to message
+    await this.deleteFiles(id)
+    return await super.remove(id, params)
   }
   async deleteFiles(msgId: string): Promise<void> {
     const messageFiles = await app.service('message-files').find({
@@ -374,6 +375,8 @@ export class MessagesService<ServiceParams extends Params = MessagesParams> exte
         conversation: conversationId,
         text: `${updater.name + content}`,
         createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+
         type: 'notification'
       },
       {
@@ -395,6 +398,35 @@ export class MessagesService<ServiceParams extends Params = MessagesParams> exte
         conversationId: notif.conversation
       })
     }
+  }
+  async patch(id: any, body: any, params: any): Promise<any> {
+    const currentUserId = params.user._id.toString()
+
+    const msg = await this.get(id, params)
+    //check if notTransfered and not already modified
+    if (msg.transfered || msg.originalText != undefined) {
+      return {
+        status: 500,
+        message: 'Impossible de modifier un message transféré.'
+      }
+    }
+    //check if notSeen
+    const seen = await app.service('message-seen').find({
+      query: {
+        message: id,
+        viewer: { $ne: currentUserId }
+      }
+    })
+    if (seen.total > 0) {
+      return {
+        status: 500,
+        message: 'Impossible de modifier un message déjà vu par un autre membre.'
+      }
+    }
+
+    body.originalText = msg.text
+    await super.patch(id, body, params)
+    return await this.get(id, params)
   }
 }
 
