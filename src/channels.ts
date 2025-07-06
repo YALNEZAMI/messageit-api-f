@@ -80,7 +80,7 @@ export const channels = (app: Application) => {
     for (const fr of friends) {
       res.push(app.channel('userId=' + fr._id.toString()))
     }
-    //and conversations memebers
+    //and conversations members
     const convs = await app.service('conversations').find({
       ...hook.params,
       query: {}
@@ -99,7 +99,8 @@ export const channels = (app: Application) => {
     }
     const res: any = []
     for (const member of conv.members) {
-      res.push(app.channel('userId=' + member._id.toString()))
+      const memberId = member._id.toString()
+      res.push(app.channel('userId=' + memberId))
     }
     return res
   })
