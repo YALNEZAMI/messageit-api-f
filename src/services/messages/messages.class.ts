@@ -284,24 +284,24 @@ export class MessagesService<ServiceParams extends Params = MessagesParams> exte
     for (const msg of messages.data) {
       await this.deleteFiles(msg._id as string)
 
-      //delete message visibility
-      await app.service('message-visibility').remove(null, {
-        query: {
-          messageId: msg._id.toString()
-        }
-      })
-      //delete message recievings
-      await app.service('message-recieving').remove(null, {
-        query: {
-          message: msg._id.toString()
-        }
-      })
-      //delete message seeings
-      await app.service('message-seen').remove(null, {
-        query: {
-          message: msg._id.toString()
-        }
-      })
+      // //delete message visibility
+      // await app.service('message-visibility').remove(null, {
+      //   query: {
+      //     messageId: msg._id.toString()
+      //   }
+      // })
+      // //delete message recievings
+      // await app.service('message-recieving').remove(null, {
+      //   query: {
+      //     message: msg._id.toString()
+      //   }
+      // })
+      // //delete message seeings
+      // await app.service('message-seen').remove(null, {
+      //   query: {
+      //     message: msg._id.toString()
+      //   }
+      // })
       await super.remove(msg._id.toString(), params)
     }
     return {
@@ -333,11 +333,15 @@ export class MessagesService<ServiceParams extends Params = MessagesParams> exte
     return await super.remove(id, params)
   }
   async deleteFiles(msgId: string): Promise<void> {
+    const messageId = msgId.toString()
     const messageFiles = await app.service('message-files').find({
       query: {
-        message: msgId.toString()
+        message: messageId
       }
     })
+    if (messageFiles.data.length == 0) {
+      return
+    }
     //delete files relative to message from db
     await app.service('message-files').remove(null, {
       query: {
@@ -345,9 +349,7 @@ export class MessagesService<ServiceParams extends Params = MessagesParams> exte
       }
     })
 
-    if (messageFiles.data.length == 0) {
-      return
-    }
+    //delete files from server
     for (const record of messageFiles.data[0].urls!) {
       const urlSplit = record.split('/')
       const photoName = urlSplit[urlSplit.length - 1]
