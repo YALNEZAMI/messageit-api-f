@@ -203,7 +203,6 @@ export class ConversationsService<ServiceParams extends Params = ConversationsPa
         (currentUserId == conversation.members[0]._id.toString() ||
           currentUserId == conversation.members[1]._id.toString())) //ai conv
     ) {
-      await app.service('messages').removeConversation(id, params)
       //delete conversation case
       await app.service('message-visibility').remove(null, {
         query: {
@@ -226,6 +225,8 @@ export class ConversationsService<ServiceParams extends Params = ConversationsPa
       await app.service('group-rights').remove(null, {
         query: { conversation: id.toString() }
       })
+      await app.service('messages').removeConversation(id, params)
+
       await super.remove(id)
     } else {
       //member leaving
