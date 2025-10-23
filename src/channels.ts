@@ -138,4 +138,16 @@ export const channels = (app: Application) => {
     }
     return res
   })
+  app.service('ai').publish(async (aiBody: any, hook: HookContext) => {
+    let conv = aiBody.conversation
+    if (!conv._id) {
+      conv = await app.service('conversations').get(conv, hook.params)
+    }
+    const res: any = []
+    for (const member of conv.members) {
+      const memberId = member._id.toString()
+      res.push(app.channel('userId=' + memberId))
+    }
+    return res
+  })
 }
