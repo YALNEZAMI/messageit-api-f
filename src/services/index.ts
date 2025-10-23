@@ -1,3 +1,4 @@
+import { ai } from './ai/ai'
 import { messageFiles } from './message-files/message-files'
 
 import { groupRights } from './group-rights/group-rights'
@@ -19,6 +20,7 @@ import { myUsers } from './my-users/my-users'
 import type { Application } from '../declarations'
 
 export const services = (app: Application) => {
+  app.configure(ai)
   app.configure(messageFiles)
 
   app.configure(groupRights)

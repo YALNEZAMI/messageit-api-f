@@ -4,6 +4,9 @@ import type { TransportConnection, Application } from '@feathersjs/feathers'
 import authenticationClient from '@feathersjs/authentication-client'
 import type { AuthenticationClientOptions } from '@feathersjs/authentication-client'
 
+import { aiClient } from './services/ai/ai.shared'
+export type { Ai, AiData, AiQuery, AiPatch } from './services/ai/ai.shared'
+
 import { messageFilesClient } from './services/message-files/message-files.shared'
 export type {
   MessageFiles,
@@ -112,7 +115,7 @@ export type ClientApplication = Application<ServiceTypes, Configuration>
  * @see https://dove.feathersjs.com/api/client.html
  * @returns The Feathers client application
  */
-export const createClient = <Configuration = any>(
+export const createClient = <Configuration = any,>(
   connection: TransportConnection<ServiceTypes>,
   authenticationOptions: Partial<AuthenticationClientOptions> = {}
 ) => {
@@ -137,5 +140,6 @@ export const createClient = <Configuration = any>(
   client.configure(groupRightsClient)
 
   client.configure(messageFilesClient)
+  client.configure(aiClient)
   return client
 }
