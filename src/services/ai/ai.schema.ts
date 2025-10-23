@@ -16,7 +16,7 @@ export const aiSchema = Type.Object(
     user: Type.String(),
     aiUser: Type.String(),
     conversation: Type.String(),
-    isLast: Type.Boolean()
+    indexOfChunk: Type.Number()
   },
   { $id: 'Ai', additionalProperties: true }
 )

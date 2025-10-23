@@ -129,21 +129,22 @@ export class AiService<ServiceParams extends Params = AiParams> extends MongoDBS
       message: messageBody.text as string
     })
     let aiResponse = ''
+    let i = 0
     for await (const chunk of stream1) {
       aiResponse += chunk.text
-
-      app.service('messages')._patch(aiMessage._id.toString(), {
-        text: aiResponse
-      })
-
       app.service('ai').emit('created', {
         _id: new ObjectId().toString(),
         text: chunk.text,
         conversation: messageBody.conversation,
         user: messageBody.sender,
-        aiUser: aiMessage.sender
+        aiUser: aiMessage.sender,
+        indexOfChunk: i
       })
+      i++
     }
+    app.service('messages')._patch(aiMessage._id.toString(), {
+      text: aiResponse
+    })
 
     // return await chat.sendMessageStream({
     //   message: messageBody.text as string
