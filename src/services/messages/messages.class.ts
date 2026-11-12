@@ -52,41 +52,44 @@ export class MessagesService<ServiceParams extends Params = MessagesParams> exte
     return messages
   }
   static async populateMessages(messages: any[], params: any) {
-    const res = []
-    for (const message of messages) {
-      if (message.type == 'notification') {
-        res.push(message)
-        continue
+    const users = new Map<string, Promise<any>>()
+    const conversations = new Map<string, Promise<any>>()
+    const getUser = (id: string) => {
+      if (!users.has(id)) {
+        users.set(id, app.service('my-users').get(id, { ...params, query: {} }))
       }
-      //set refered message if exist
-      if (message.referedMessage && message.referedMessage != '') {
-        message.referedMessage = await app
-          .service('messages')
-          .get(message.referedMessage, { ...params, query: { conversation: message.conversation } })
-        const sender = await app.service('my-users').get(message.referedMessage.sender, {
-          ...params,
-          query: {}
-        })
-
-        message.referedMessage.sender = sender
-
-        // const populating = await populateMessages([message.referedMessage], params)
-        // message.referedMessage = populating[0]
-      }
-      //set sender
-      const sender = await app.service('my-users').get(message.sender, {
-        ...params,
-        query: {}
-      })
-      message.sender = sender
-      //set conversation
-      message.conversation = await app.service('conversations').get(message.conversation, {
-        ...params,
-        query: {}
-      })
-      res.push(message)
+      return users.get(id)!
     }
-    return res
+    const getConversation = (id: string) => {
+      if (!conversations.has(id)) {
+        conversations.set(id, app.service('conversations').get(id, { ...params, query: {} }))
+      }
+      return conversations.get(id)!
+    }
+
+    return Promise.all(messages.map(async (message) => {
+      if (message.type == 'notification') {
+        return message
+      }
+      const conversationId = message.conversation
+      const [sender, conversation, referencedMessage] = await Promise.all([
+        getUser(message.sender),
+        getConversation(conversationId),
+        message.referedMessage && message.referedMessage != ''
+          ? app.service('messages').get(message.referedMessage, {
+              ...params,
+              query: { conversation: conversationId }
+            })
+          : null
+      ])
+      if (referencedMessage) {
+        referencedMessage.sender = await getUser(referencedMessage.sender)
+        message.referedMessage = referencedMessage
+      }
+      message.sender = sender
+      message.conversation = conversation
+      return message
+    }))
   }
   async find(params: any): Promise<any> {
     if (params.query.key) {

@@ -5,6 +5,17 @@ import '@feathersjs/transport-commons'
 import type { Application, HookContext } from './declarations'
 import { logger } from './logger'
 
+export const handleDisconnect = async (app: Application, connection: RealTimeConnection) => {
+  app.channel('anonymous').leave(connection)
+  if (!connection.user?._id) return
+
+  const user = await app.service('my-users')._patch(connection.user._id.toString(), {
+    onLine: false,
+    lastConnection: new Date().toISOString()
+  })
+  app.service('my-users').emit('patched', user)
+}
+
 export const channels = (app: Application) => {
   logger.warn(
     'Publishing all events to all authenticated users. See `channels.ts` and https://dove.feathersjs.com/api/channels.html for more information.'
@@ -16,14 +27,10 @@ export const channels = (app: Application) => {
   })
 
   //set user offline
-  app.on('disconnect', async (connection: RealTimeConnection) => {
-    app.channel('anonymous').leave(connection)
-    // On a new real-time connection, add it to the anonymous channel
-    const user = await app.service('my-users')._patch(connection.user._id.toString(), {
-      onLine: false,
-      lastConnection: new Date().toISOString()
+  app.on('disconnect', (connection: RealTimeConnection) => {
+    void handleDisconnect(app, connection).catch((error: unknown) => {
+      logger.error('Failed to update user presence on disconnect: %O', error)
     })
-    app.service('my-users').emit('patched', user)
   })
 
   app.on('login', async (authResult: AuthenticationResult, { connection }: Params) => {
