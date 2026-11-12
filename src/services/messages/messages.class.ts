@@ -9,14 +9,13 @@ import type { Messages, MessagesData, MessagesPatch, MessagesQuery } from './mes
 import { app } from '../../app'
 import { ObjectId } from 'mongodb'
 import fs from 'fs'
-import { GoogleGenerativeAI } from '@google/generative-ai'
 import { BadRequest } from '@feathersjs/errors'
 import path from 'path'
+import { buildGeminiContents, generateGeminiResponse } from './gemini'
 
 export type { Messages, MessagesData, MessagesPatch, MessagesQuery }
 
 export interface MessagesParams extends MongoDBAdapterParams<MessagesQuery> {}
-type ContentDto = { role: string; parts: { text: string } }
 // Converts local file information to base64
 async function fileUrlToGenerativePart(url: string, mimeType: string) {
   const response = await axios.get(url, { responseType: 'arraybuffer' })
@@ -119,51 +118,48 @@ export class MessagesService<ServiceParams extends Params = MessagesParams> exte
   }
   async create(messageBody: any, params: any): Promise<any> {
     //handle empty msg
-    if (!messageBody.text && messageBody.files.length == 0) {
+    if (!messageBody.text && (!messageBody.files || messageBody.files.length == 0)) {
       return messageBody
     }
 
-    let userMessage: any = await super._create(messageBody, params)
-    let aiMessage: any = null
     const conversation = await app.service('conversations').get(messageBody.conversation, {
       ...params,
       query: {}
     })
 
-    //handl ai conversations
+    let aiResponse: string | undefined
+    const aiUser = conversation.type == 'ai'
+      ? conversation.members.find((member: any) => member.aiUser && member._id.toString() !== messageBody.sender)
+      : undefined
     if (conversation.type == 'ai') {
-      let aiResponse = 'Error'
-      if (messageBody.files.length > 0) {
-        aiResponse = await this.analyseMedias(messageBody.files, messageBody.text)
-      } else {
-        aiResponse = await this.geminiRequest(messageBody, params)
-      }
+      if (!aiUser) throw new BadRequest('Assistant introuvable dans cette conversation.')
+      aiResponse = await this.geminiRequest(messageBody, params)
+    }
 
+    let userMessage: any = await super._create(messageBody, params)
+    let aiMessage: any = null
+
+    if (conversation.type == 'ai') {
       userMessage.sender = await app.service('my-users').get(messageBody.sender, {
         ...params,
         query: {}
       })
-      //create ai response message
-      let aiUser: any = await app.service('my-users')._find({
-        ...params,
-        query: {
-          name: messageBody.sender
-        }
-      })
-      aiUser = aiUser.data[0]._id
       aiMessage = await super.create(
         {
           ...messageBody,
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString(),
           text: aiResponse,
-          sender: aiUser
+          sender: aiUser._id.toString(),
+          files: [],
+          referedMessage: ''
         },
         params
       )
       //set visibility
       await this.setVisibility(userMessage, conversation)
       await this.setVisibility(aiMessage, conversation)
+      aiMessage.sender = aiUser
     } else {
       //set visibility
       await this.setVisibility(userMessage, conversation)
@@ -189,77 +185,26 @@ export class MessagesService<ServiceParams extends Params = MessagesParams> exte
       : userMessage
   }
 
-  async getGeminiContents(messageBody: any, params: any): Promise<ContentDto[]> {
+  async geminiRequest(messageBody: any, params: any): Promise<string> {
     const messages = await super._find({
       ...params,
       query: {
-        // sender: { $ne: messageBody.sender },
         conversation: messageBody.conversation,
-        $sort: { createdAt: 1 },
+        $sort: { createdAt: -1 },
         $limit: 20
       }
     })
-    let res = []
-
-    for (const msg of messages.data.reverse()) {
-      res.push({
-        role: msg.sender == messageBody.sender ? 'user' : 'model',
-        parts: {
-          text: msg.text as string
-        }
-      })
-    }
-    res.push({
-      role: 'user',
-      parts: {
-        text: messageBody.text as string
-      }
-    })
-    return res
-  }
-  async analyseMedias(mediasPaths: any[], prompt: string): Promise<string> {
-    const genAI = new GoogleGenerativeAI(process.env.GEMINI_KEY as string)
-    const model = genAI.getGenerativeModel({ model: 'gemini-1.5-pro' })
 
     const imageParts = await Promise.all(
-      mediasPaths.map(async (url: string) => {
-        const ext = url.split('.').pop()
+      (messageBody.files || []).map(async (url: string) => {
+        const ext = new URL(url).pathname.split('.').pop()?.toLowerCase()
         const mimeType = 'image/' + (ext != 'jpg' ? ext : 'jpeg')
         return await fileUrlToGenerativePart(url, mimeType)
       })
     )
-
-    const generatedContent = await model.generateContent([prompt, ...imageParts])
-    const text = generatedContent.response.text()
-    return text
-  }
-  async geminiRequest(messageBody: any, params: any): Promise<string> {
-    let result = 'Error'
-    // Your API key
-    const GEMINI_KEY = process.env.GEMINI_KEY
-    // API endpoint
-    const endpoint =
-      'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent'
-
-    try {
-      // Request payload
-      const data = {
-        contents: await this.getGeminiContents(messageBody, params)
-      }
-
-      // Send POST request
-      const response = await axios.post(`${endpoint}?key=${GEMINI_KEY}`, data, {
-        headers: {
-          'Content-Type': 'application/json'
-        }
-      })
-
-      // Log the response data
-      result = response.data.candidates[0].content.parts[0].text
-    } catch (error: any) {
-      console.error('Error:', error.response ? error.response.data : error.message)
-    }
-    return result
+    return generateGeminiResponse(
+      buildGeminiContents(messages.data.reverse(), messageBody.sender, messageBody.text, imageParts)
+    )
   }
   //@param message : the message to be visible
   //@param conversation: message will be visible for current conversation members

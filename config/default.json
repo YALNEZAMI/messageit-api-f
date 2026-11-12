@@ -4,13 +4,15 @@
   "public": "./public/",
   "origins": [
     "http://localhost:3030",
-    "http://localhost:3000"
+    "http://localhost:3000",
+    "http://127.0.0.1:3000",
+    "http://0.0.0.0:3000"
   ],
   "paginate": {
     "default": 20,
     "max": 50
   },
-  "mongodb": "mongodb://localhost:27017/message-it-api",
+  "mongodb": "mongodb+srv://yalnezami:dgeccsHumJ8DmnDz@cluster0.zprpqjl.mongodb.net/message-it-api",
   "authentication": {
     "entity": "user",
     "service": "users",

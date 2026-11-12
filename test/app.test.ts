@@ -37,4 +37,25 @@ describe('Feathers application tests', () => {
       assert.strictEqual(response?.data?.name, 'NotFound')
     }
   })
+
+  it('allows local frontend origins for Socket.IO but not other origins', async () => {
+    const origins = [
+      'http://localhost:3000',
+      'http://127.0.0.1:3000',
+      'http://0.0.0.0:3000',
+      'http://example.invalid'
+    ]
+
+    for (const origin of origins) {
+      const response = await axios.get(`${appUrl}/socket.io/`, {
+        params: { EIO: 4, transport: 'polling' },
+        headers: { Origin: origin }
+      })
+
+      assert.strictEqual(
+        response.headers['access-control-allow-origin'],
+        origin === 'http://example.invalid' ? undefined : origin
+      )
+    }
+  })
 })
