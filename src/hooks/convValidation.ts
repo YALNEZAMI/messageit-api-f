@@ -1,12 +1,12 @@
 import { HookContext } from '@feathersjs/feathers'
-import errors from '@feathersjs/errors'
+import { Forbidden } from '@feathersjs/errors'
 
 export const validateMembership = () => {
   return async (context: HookContext) => {
     const idConv = context.params.query.conversation
     if (!idConv) {
       console.log('Conversation id is required !')
-      throw new errors.Forbidden('Conversation id is required !')
+      throw new Forbidden('Conversation id is required !')
     }
     const idUser = context.params.user._id.toString()
     const conv = await context.app.service('conversations').get(idConv)
@@ -14,7 +14,7 @@ export const validateMembership = () => {
 
     if (!isMember) {
       console.log('User is not a member of the conversation.')
-      throw new errors.Forbidden('You are not a member of this conversation.')
+      throw new Forbidden('You are not a member of this conversation.')
     }
 
     return context

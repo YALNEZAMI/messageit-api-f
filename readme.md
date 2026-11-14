@@ -62,6 +62,35 @@ URLs configurées sont destinées au navigateur sur cette même machine, pas à
 un accès depuis un autre appareil. Pour les personnes qui utilisent l'ancienne
 configuration Docker, le service API s'appelle désormais `api` au lieu de `app`.
 
+## Recherche sémantique locale
+
+Dans une conversation, l'onglet « Sens » classe jusqu'à 20 messages visibles
+par proximité avec la recherche, sans générer de réponse. Les embeddings sont
+calculés localement avec Ollama et le modèle multilingue `bge-m3` ; aucun
+message n'est envoyé à Gemini pour cette fonctionnalité. Seul le texte est
+indexé, pas les images ni les autres pièces jointes.
+
+Avec Docker Compose, démarrez le service optionnel et téléchargez le modèle :
+
+```sh
+docker compose --profile semantic up -d ollama
+docker compose --profile semantic exec ollama ollama pull bge-m3
+```
+
+Le téléchargement du modèle nécessite une connexion et plusieurs Go d'espace
+disque. Le modèle est conservé dans le volume `ollama-data` ; `down -v` le
+supprime aussi. La première recherche calcule les vecteurs de l'historique
+visible et peut être longue ; un cache en mémoire accélère les suivantes et
+est perdu au redémarrage de l'API. Les nouveaux messages et les modifications
+sont pris en compte lors de la recherche suivante.
+
+Hors Docker, installez et démarrez Ollama sur la machine de l'API, puis
+exécutez `ollama pull bge-m3`. L'API utilise par défaut
+`http://127.0.0.1:11434` ; `OLLAMA_HOST` permet de changer le port local.
+`EMBEDDING_MODEL` permet de choisir un autre modèle d'embeddings installé.
+Si Ollama ou le modèle est indisponible, la recherche textuelle reste
+utilisable et l'interface indique l'erreur.
+
 ## Testing
 
 Run `npm test` and all your tests in the `test/` directory will be run.

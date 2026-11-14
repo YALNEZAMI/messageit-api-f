@@ -76,7 +76,8 @@ export const messagesQuerySchema = Type.Intersect(
     // Add additional query properties here
     Type.Object(
       {
-        key: Type.Optional(Type.String())
+        key: Type.Optional(Type.String()),
+        searchMode: Type.Optional(Type.Literal('semantic'))
       },
       { additionalProperties: false }
     )

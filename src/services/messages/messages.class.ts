@@ -9,9 +9,10 @@ import type { Messages, MessagesData, MessagesPatch, MessagesQuery } from './mes
 import { app } from '../../app'
 import { ObjectId } from 'mongodb'
 import fs from 'fs'
-import { BadRequest } from '@feathersjs/errors'
+import { BadRequest, Forbidden } from '@feathersjs/errors'
 import path from 'path'
 import { buildGeminiContents, generateGeminiResponse } from './gemini'
+import { searchVisibleMessages } from './semantic-search'
 
 export type { Messages, MessagesData, MessagesPatch, MessagesQuery }
 
@@ -37,9 +38,13 @@ export class MessagesService<ServiceParams extends Params = MessagesParams> exte
   async findByKey(params: any): Promise<any> {
     const key = params.query.key
     const conversationId = params.query.conversation
+    const db = await app.get('mongodbClient')
+    const visibility = await db.collection('message-visibility')
+      .find({ userId: params.user._id.toString(), conversationId }).toArray()
     let messages: any = await super.find({
       query: {
-        conversation: conversationId
+        conversation: conversationId,
+        _id: { $in: visibility.filter((item) => ObjectId.isValid(item.messageId)).map((item) => new ObjectId(item.messageId)) }
       },
       paginate: false
     })
@@ -92,6 +97,34 @@ export class MessagesService<ServiceParams extends Params = MessagesParams> exte
     }))
   }
   async find(params: any): Promise<any> {
+    if (params.query.searchMode === 'semantic') {
+      const messages = await searchVisibleMessages(
+        await app.get('mongodbClient'),
+        params.query.conversation,
+        params.user._id.toString(),
+        params.query.key || ''
+      )
+      const conversation = await app.service('conversations').get(params.query.conversation, {})
+      if (!conversation.members.some((member: any) => member._id.toString() === params.user._id.toString())) {
+        throw new Forbidden('Vous ne faites plus partie de cette conversation.')
+      }
+      const users = new Map<string, Promise<any>>()
+      return Promise.all(messages.map(async (message) => {
+        const senderId = message.sender ? String(message.sender) : undefined
+        if (senderId && !users.has(senderId)) {
+          users.set(senderId, app.service('my-users').get(senderId, { ...params, query: {} }))
+        }
+        return {
+          _id: message._id,
+          text: message.text,
+          type: message.type,
+          conversation: message.conversation,
+          createdAt: message.createdAt,
+          updatedAt: message.updatedAt,
+          sender: senderId ? await users.get(senderId) : undefined
+        }
+      }))
+    }
     if (params.query.key) {
       return await this.findByKey(params)
     }
