@@ -1,4 +1,4 @@
-import { Conflict } from '@feathersjs/errors'
+import { Conflict, Forbidden } from '@feathersjs/errors'
 import { app } from '../../app'
 import { HookContext } from '@feathersjs/feathers'
 
@@ -12,10 +12,18 @@ export const privateConversationExistHook = () => {
     }
 
     // Validate `members` field
-    if (!Array.isArray(members) || (members.length !== 2 && context.data.type == 'priavte')) {
+    if (!Array.isArray(members) || (members.length !== 2 && context.data.type === 'private')) {
       throw new Conflict(
         'The "members" field must be an array of exactly two user IDs in private conversations.'
       )
+    }
+    const userId = context.params.user?._id?.toString()
+    if (!userId || !members.includes(userId)) {
+      throw new Forbidden('You must be a member of the conversation.')
+    }
+    if (context.data.type === 'ai') {
+      if (members.length !== 1) throw new Conflict('An assistant conversation must have one user.')
+      context.data.name = userId
     }
   }
 }

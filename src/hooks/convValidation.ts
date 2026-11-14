@@ -3,20 +3,11 @@ import { Forbidden } from '@feathersjs/errors'
 
 export const validateMembership = () => {
   return async (context: HookContext) => {
-    const idConv = context.params.query.conversation
-    if (!idConv) {
-      console.log('Conversation id is required !')
+    const idConv = context.path === 'conversations' ? context.id : context.params.query?.conversation
+    if (typeof idConv !== 'string' || !idConv) {
       throw new Forbidden('Conversation id is required !')
     }
-    const idUser = context.params.user._id.toString()
-    const conv = await context.app.service('conversations').get(idConv)
-    const isMember = conv.members.some((member: any) => member._id == idUser)
-
-    if (!isMember) {
-      console.log('User is not a member of the conversation.')
-      throw new Forbidden('You are not a member of this conversation.')
-    }
-
+    await context.app.service('conversations').get(idConv, { user: context.params.user })
     return context
   }
 }

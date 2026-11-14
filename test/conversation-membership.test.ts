@@ -1,11 +1,15 @@
 import assert from 'assert'
 import { feathers } from '@feathersjs/feathers'
+import { Forbidden } from '@feathersjs/errors'
 import { validateMembership } from '../src/hooks/convValidation'
 
 describe('conversation membership', () => {
   it('rejects non-members and missing conversation ids with a Forbidden error', async () => {
     const app = feathers()
-    app.use('conversations', { async get() { return { members: [{ _id: 'member' }] } } })
+    app.use('conversations', { async get(_id: string, params: any) {
+      if (params.user._id !== 'member') throw new Forbidden()
+      return { members: [{ _id: 'member' }] }
+    } })
     app.use('guard', { async find() { return [] } })
     app.service('guard').hooks({ before: { find: [validateMembership()] } })
     const user = { _id: 'outsider', email: 'outsider@example.invalid' }

@@ -18,7 +18,7 @@ import type { Application, HookContext } from '../../declarations'
 import { MessagesService, getOptions } from './messages.class'
 import { messagesPath, messagesMethods } from './messages.shared'
 import setTimestamps from '../../hooks/dating'
-import { validateMembership } from '../../hooks/convValidation'
+import { authorizeMessage } from '../../hooks/messageAuthorization'
 
 export * from './messages.class'
 export * from './messages.schema'
@@ -43,9 +43,9 @@ export const messages = (app: Application) => {
     },
     before: {
       all: [
-        validateMembership(),
         schemaHooks.validateQuery(messagesQueryValidator),
-        schemaHooks.resolveQuery(messagesQueryResolver)
+        schemaHooks.resolveQuery(messagesQueryResolver),
+        authorizeMessage()
       ],
       find: [],
       get: [],

@@ -12,6 +12,7 @@ import type {
 } from './conversations.schema'
 import { app } from '../../app'
 import { ObjectId } from 'mongodb'
+import { Forbidden } from '@feathersjs/errors'
 
 export type { Conversations, ConversationsData, ConversationsPatch, ConversationsQuery }
 
@@ -84,7 +85,10 @@ export class ConversationsService<ServiceParams extends Params = ConversationsPa
   }
   async get(id: any, params: any): Promise<any> {
     const conv = await super._get(id)
-
+    const userId = params?.user?._id?.toString()
+    if ((params?.provider || userId) && (!userId || !conv.members.some((member: any) => String(member) === userId))) {
+      throw new Forbidden('You are not a member of this conversation.')
+    }
     const convs = await this.populateConversations([conv], params)
     return convs[0]
   }

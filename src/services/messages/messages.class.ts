@@ -104,7 +104,9 @@ export class MessagesService<ServiceParams extends Params = MessagesParams> exte
         params.user._id.toString(),
         params.query.key || ''
       )
-      const conversation = await app.service('conversations').get(params.query.conversation, {})
+      const conversation = await app.service('conversations').get(params.query.conversation, {
+        user: params.user
+      })
       if (!conversation.members.some((member: any) => member._id.toString() === params.user._id.toString())) {
         throw new Forbidden('Vous ne faites plus partie de cette conversation.')
       }
@@ -142,8 +144,8 @@ export class MessagesService<ServiceParams extends Params = MessagesParams> exte
       return new ObjectId(v.messageId)
     })
     params.query = {
-      _id: { $in: visibileMessagesIds },
-      ...params.query
+      ...params.query,
+      _id: { $in: visibileMessagesIds }
     }
 
     const messages = await super.find(params)
