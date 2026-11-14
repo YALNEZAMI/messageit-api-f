@@ -1,21 +1,64 @@
 services:
-  app:
-    build:
-      context: .
-    ports:
-      - "3030:3030"
-    environment:
-      MONGODB: mongodb://localhost:27017
-    depends_on:
-      - mongo
-
   mongo:
-    image: mongo:latest
-    container_name: mongodb
-    ports:
-      - "27017:27017"
+    image: mongo:7.0
+    restart: unless-stopped
     volumes:
       - mongo-data:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--quiet", "--eval", "quit(db.adminCommand('ping').ok ? 0 : 1)"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  api:
+    build:
+      context: .
+    restart: unless-stopped
+    env_file:
+      - ${API_ENV_FILE:-.env}
+    environment:
+      NODE_ENV: production
+      HOSTNAME: 0.0.0.0
+      PORT: 3030
+      MONGODB_URI: mongodb://mongo:27017/message-it-api
+      UI_URL: http://localhost:3000
+      FEATHERS_SECRET: ${FEATHERS_SECRET:?Définissez FEATHERS_SECRET dans messageit-api-f/.env}
+    ports:
+      - "127.0.0.1:3030:3030"
+    depends_on:
+      mongo:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3030/socket.io/?EIO=4&transport=polling').then(r => process.exit(r.ok ? 0 : 1)).catch(() => process.exit(1))"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 10s
+
+  front:
+    build:
+      context: ../messageit-ui-f
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      NITRO_HOST: 0.0.0.0
+      NITRO_PORT: 3000
+      NUXT_PUBLIC_FEATHERS_URL: http://localhost:3030
+      NUXT_PUBLIC_BASE_URL: http://localhost:3000
+    ports:
+      - "127.0.0.1:3000:3000"
+    volumes:
+      - uploads:/app/public/uploads
+    depends_on:
+      api:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3000/').then(r => process.exit(r.ok ? 0 : 1)).catch(() => process.exit(1))"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 10s
 
 volumes:
   mongo-data:
+  uploads:
