@@ -8,6 +8,7 @@ const MODEL = process.env.EMBEDDING_MODEL || 'bge-m3'
 const BATCH_SIZE = 24
 const CACHE_LIMIT = 5000
 const CHUNK_SIZE = 2000
+export const MIN_SEMANTIC_SIMILARITY = 0.62
 const cache = new Map<string, number[]>()
 
 export interface SearchableMessage {
@@ -87,6 +88,24 @@ export function cosineSimilarity(a: number[], b: number[]): number {
   return dot / Math.sqrt(aa * bb)
 }
 
+export function matchesExactQuery(text: string, query: string): boolean {
+  const normalize = (value: string) => value.normalize('NFC').toLocaleLowerCase().trim()
+  const normalizedText = normalize(text)
+  const normalizedQuery = normalize(query)
+  if (!normalizedQuery) return false
+  let position = normalizedText.indexOf(normalizedQuery)
+  while (position !== -1) {
+    const before = normalizedText.slice(0, position)
+    const after = normalizedText.slice(position + normalizedQuery.length)
+    const startsWithWord = /^[\p{L}\p{N}\p{M}]/u.test(normalizedQuery)
+    const endsWithWord = /[\p{L}\p{N}\p{M}]$/u.test(normalizedQuery)
+    if ((!startsWithWord || !/[\p{L}\p{N}\p{M}]$/u.test(before)) &&
+        (!endsWithWord || !/^[\p{L}\p{N}\p{M}]/u.test(after))) return true
+    position = normalizedText.indexOf(normalizedQuery, position + 1)
+  }
+  return false
+}
+
 export async function searchVisibleMessages(
   db: Db, conversation: string, userId: string, query: string
 ): Promise<SearchableMessage[]> {
@@ -124,6 +143,8 @@ export async function searchVisibleMessages(
       }
     }
     for (const candidate of scores.values()) {
+      if (candidate.score < MIN_SEMANTIC_SIMILARITY &&
+          !matchesExactQuery(candidate.message.text || '', key)) continue
       const previous = results.findIndex((entry) => entry.message._id.equals(candidate.message._id))
       if (previous !== -1) results.splice(previous, 1)
       results.push(candidate)

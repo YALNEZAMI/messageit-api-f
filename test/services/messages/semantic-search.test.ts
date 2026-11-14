@@ -2,9 +2,10 @@ import assert from 'assert'
 import { createServer, Server } from 'http'
 import { AddressInfo } from 'net'
 import { Db, MongoClient, ObjectId } from 'mongodb'
-import { cosineSimilarity, searchVisibleMessages } from '../../../src/services/messages/semantic-search'
+import { cosineSimilarity, matchesExactQuery, MIN_SEMANTIC_SIMILARITY, searchVisibleMessages } from '../../../src/services/messages/semantic-search'
 
 describe('local semantic search', function () {
+  this.timeout(30000)
   const uri = process.env.SEMANTIC_TEST_MONGODB_URI
   let client: MongoClient
   let db: Db
@@ -34,9 +35,13 @@ describe('local semantic search', function () {
         const body = JSON.parse(raw) as { input: string[]; truncate: boolean }
         assert.strictEqual(body.truncate, false)
         calls.push(body.input)
-        const vectors = body.input.map((text) =>
-          /voyage|plage/i.test(text) ? [1, 0] : [0, 1]
-        )
+        const vectors = body.input.map((text) => {
+          if (text === 'chien amical') return [0.7, Math.sqrt(1 - 0.7 ** 2)]
+          if (text === 'comment ça va') return [0.55, Math.sqrt(1 - 0.55 ** 2)]
+          if (text === 'score trop faible') return [0.619, Math.sqrt(1 - 0.619 ** 2)]
+          if (text === 'score suffisant') return [0.621, Math.sqrt(1 - 0.621 ** 2)]
+          return /^(animal|voyage)$|voyage|plage/i.test(text) ? [1, 0] : [0, 1]
+        })
         res.writeHead(200, { 'content-type': 'application/json' }).end(JSON.stringify({ embeddings: vectors }))
       })
     })
@@ -70,7 +75,7 @@ describe('local semantic search', function () {
 
   it('ranks visible messages by meaning and reuses cached vectors', async () => {
     const first = await searchVisibleMessages(db, conversation, user, 'voyage')
-    assert.deepStrictEqual(first.map((message) => message._id.toString()), [beach.toString(), work.toString()])
+    assert.deepStrictEqual(first.map((message) => message._id.toString()), [beach.toString()])
     const previousCalls = calls.length
     await searchVisibleMessages(db, conversation, user, 'voyage')
     assert.strictEqual(calls.length, previousCalls)
@@ -89,7 +94,7 @@ describe('local semantic search', function () {
   it('searches long messages in chunks and returns at most 20 results', async () => {
     const longId = new ObjectId()
     const additional = Array.from({ length: 25 }, (_, index) => ({
-      _id: new ObjectId(), conversation, type: 'message', text: `bureau ${index}`
+      _id: new ObjectId(), conversation, type: 'message', text: `voyage bureau ${index}`
     }))
     await db.collection('messages').insertMany([
       { _id: longId, conversation, type: 'message', text: `${'bureau '.repeat(350)}voyage` },
@@ -101,6 +106,35 @@ describe('local semantic search', function () {
     assert.strictEqual(result.length, 20)
     assert(result.some((message) => message._id.equals(longId)))
     assert(calls.flat().some((text) => text.endsWith('voyage') && text.length > 10 && text.length < 2000))
+  })
+
+  it('filters low scores, retains exact terms and can return no results', async () => {
+    const animalConversation = 'animal-conversation'
+    const related = new ObjectId()
+    const unrelated = new ObjectId()
+    const exact = new ObjectId()
+    const below = new ObjectId()
+    const above = new ObjectId()
+    await db.collection('messages').insertMany([
+      { _id: related, conversation: animalConversation, type: 'message', text: 'chien amical' },
+      { _id: unrelated, conversation: animalConversation, type: 'message', text: 'comment ça va' },
+      { _id: exact, conversation: animalConversation, type: 'message', text: 'Un animal au refuge' },
+      { _id: below, conversation: animalConversation, type: 'message', text: 'score trop faible' },
+      { _id: above, conversation: animalConversation, type: 'message', text: 'score suffisant' }
+    ])
+    await db.collection('message-visibility').insertMany([related, unrelated, exact, below, above].map((id) => ({
+      userId: user, conversationId: animalConversation, messageId: id.toString()
+    })))
+    await db.collection('message-visibility').insertOne({
+      userId: 'only-unrelated', conversationId: animalConversation, messageId: unrelated.toString()
+    })
+    const result = await searchVisibleMessages(db, animalConversation, user, 'animal')
+    assert.deepStrictEqual(result.map((message) => message._id.toString()),
+      [related.toString(), above.toString(), exact.toString()])
+    const empty = await searchVisibleMessages(db, animalConversation, 'nobody', 'animal')
+    assert.deepStrictEqual(empty, [])
+    const irrelevant = await searchVisibleMessages(db, animalConversation, 'only-unrelated', 'animal')
+    assert.deepStrictEqual(irrelevant, [])
   })
 
   it('surfaces embedding errors and rejects invalid input', async () => {
@@ -130,5 +164,14 @@ describe('cosine similarity', () => {
     assert.strictEqual(cosineSimilarity([1, 0], [1, 0]), 1)
     assert.strictEqual(cosineSimilarity([1, 0], [0, 1]), 0)
     assert.throws(() => cosineSimilarity([1], [1, 2]), /incompatibles/)
+  })
+  it('uses the intended threshold and matches complete exact terms', () => {
+    assert.strictEqual(MIN_SEMANTIC_SIMILARITY, 0.62)
+    assert(matchesExactQuery('Un ANIMAL au refuge', 'animal'))
+    assert(matchesExactQuery("L’animal dort", 'animal'))
+    assert(matchesExactQuery('Une facture coûte 20 €.', '20 €'))
+    assert(!matchesExactQuery('animalier', 'animal'))
+    assert(!matchesExactQuery('comment ça va', 'animal'))
+    assert(!matchesExactQuery('animal', ' '))
   })
 })

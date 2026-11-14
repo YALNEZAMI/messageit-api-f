@@ -65,7 +65,12 @@ configuration Docker, le service API s'appelle désormais `api` au lieu de `app`
 ## Recherche sémantique locale
 
 Dans une conversation, l'onglet « Sens » classe jusqu'à 20 messages visibles
-par proximité avec la recherche, sans générer de réponse. Les embeddings sont
+par proximité avec la recherche, sans générer de réponse. Les résultats
+sémantiques doivent atteindre un score cosinus de 0,62 ; une expression exacte
+est également conservée même si son score est inférieur. Ce seuil privilégie
+la précision : certains messages pertinents peuvent ne pas apparaître, et un
+score élevé ne garantit pas toujours un lien direct. Essayez de reformuler
+votre recherche ou utilisez l'onglet « Mots exacts » si nécessaire. Les embeddings sont
 calculés localement avec Ollama et le modèle multilingue `bge-m3` ; aucun
 message n'est envoyé à Gemini pour cette fonctionnalité. Seul le texte est
 indexé, pas les images ni les autres pièces jointes.
@@ -87,7 +92,9 @@ sont pris en compte lors de la recherche suivante.
 Hors Docker, installez et démarrez Ollama sur la machine de l'API, puis
 exécutez `ollama pull bge-m3`. L'API utilise par défaut
 `http://127.0.0.1:11434` ; `OLLAMA_HOST` permet de changer le port local.
-`EMBEDDING_MODEL` permet de choisir un autre modèle d'embeddings installé.
+`EMBEDDING_MODEL` permet de choisir un autre modèle d'embeddings installé,
+mais le seuil de pertinence a été calibré pour `bge-m3` et peut ne pas convenir
+à d'autres modèles.
 Si Ollama ou le modèle est indisponible, la recherche textuelle reste
 utilisable et l'interface indique l'erreur.
 
