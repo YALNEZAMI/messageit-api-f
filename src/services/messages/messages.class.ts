@@ -13,6 +13,7 @@ import { BadRequest, Forbidden } from '@feathersjs/errors'
 import path from 'path'
 import { buildGeminiContents, generateGeminiResponse } from './gemini'
 import { searchVisibleMessages } from './semantic-search'
+import { olderMessageCursor } from './message-cursor'
 
 export type { Messages, MessagesData, MessagesPatch, MessagesQuery }
 
@@ -131,6 +132,8 @@ export class MessagesService<ServiceParams extends Params = MessagesParams> exte
       return await this.findByKey(params)
     }
     const currentUserId = params.user._id.toString()
+    const { olderThanCreatedAt, olderThanId, ...query } = params.query
+    const cursor = olderMessageCursor(olderThanCreatedAt, olderThanId)
 
     //filter deleted not visible messages(deleted,sent when user had left for a moment)
     const visibileMessages: any = await app.service('message-visibility').find({
@@ -144,8 +147,9 @@ export class MessagesService<ServiceParams extends Params = MessagesParams> exte
       return new ObjectId(v.messageId)
     })
     params.query = {
-      ...params.query,
-      _id: { $in: visibileMessagesIds }
+      ...query,
+      _id: { $in: visibileMessagesIds },
+      ...(cursor ? { $and: [...(query.$and || []), cursor] } : {})
     }
 
     const messages = await super.find(params)

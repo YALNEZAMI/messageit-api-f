@@ -77,7 +77,9 @@ export const messagesQuerySchema = Type.Intersect(
     Type.Object(
       {
         key: Type.Optional(Type.String()),
-        searchMode: Type.Optional(Type.Literal('semantic'))
+        searchMode: Type.Optional(Type.Literal('semantic')),
+        olderThanCreatedAt: Type.Optional(Type.String({ format: 'date-time' })),
+        olderThanId: Type.Optional(Type.String())
       },
       { additionalProperties: false }
     )
